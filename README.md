@@ -1,10 +1,10 @@
 ## Getting Started
 
-To use the TodoMVC framework, follow these steps:
+To use the framework, follow these steps
 
 1. **Import the Framework**
 
-   Import the `FrameWork` and `Router` classes from the framework files into your project:
+   Import the `FrameWork` and `Router` classes from the framework files into your project
 
    ```javascript
    import { FrameWork } from "./framework/main";
