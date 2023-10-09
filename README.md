@@ -42,12 +42,21 @@ To use the TodoMVC framework, follow these steps:
     };
    ```
 
-5. **Render Elements**
+5. **Create Elements**
 
    Use the `FrameWork.CreateElement` function to create and render HTML elements. This function takes three arguments: the element type, attributes, and child elements like text or other CreateElements.
 
+   In the example there is a normal CreateElement, 2 nested elements, first has multible attributes, second has an event as an argument
+
    ```
-    const element = FrameWork.CreateElement("div", { className: "my-class" }, "Hello, World!");
+    FrameWork.CreateElement("div", { className: "my-class" },
+        FrameWork.CreateElement("input", {
+            type: "text",
+            value: variable,
+            placeholder: "Add a new todo",
+        }),
+        FrameWork.CreateElement("button", { onClick: function() }, "button")
+    );
    ```
 
 6. **Router Setup**
