@@ -19,7 +19,6 @@ To use the TodoMVC framework, follow these steps:
    function todoMVC(){
        main page ...
    }
-
    ```
 
 3. **Use State Management**
