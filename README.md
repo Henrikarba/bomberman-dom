@@ -1,84 +1,167 @@
-## Getting Started
+# Getting started
 
-To use the framework, follow these steps
+## 0. **TodoMVC**
 
-1. **Import the Framework**
+Open index.html to see [TodoMVC](https://todomvc.com/) built in mini-framework
 
-   Import the `FrameWork` and `Router` classes from the framework files into your project
+## 1. **Basic starter example**
 
-   ```javascript
-   import { FrameWork } from "./framework/main";
-   import Router from "./framework/router";
-   ```
+```javascript
+// Import the framework
+import mini from './mini/framework.js'
 
-2. **Define Your Main Component**
+// Select your apps main container
+// This is where your app will live
+// Router will use this element to change content based on url
+const container = document.getElementById('app')
 
-   Create a main function that represents one route. This function will define your application's structure and behavior.
+// Create router
+const router = mini.router(container)
 
-   ```
-   function todoMVC(){
-       main page ...
-   }
-   ```
+// Create home view
+const Home = () => {
+	return [
+		mini.section(
+			{ class: 'main' },
+			// Add attr data-use-router: true for router, other anchor tags will have default behavior
+			mini.a({ href: '/', 'data-use-router': true }, 'To home')
+		),
+		mini.footer({}, mini.p({ class: 'text-lg' }, 'paragraph tag with class text-lg inside footer tag')),
+	]
+}
 
-3. **Use State Management**
+// Register handler
+router.registerRoute('/', Home)
 
-   Use the FrameWork.UseState function to manage the state of your application. This function takes three arguments: the initial state value, a unique key to identify the state, and the parent component
+// Initializes the router, add it in the end
+router.navigateTo()
+```
 
-   ```
-   const [todos, setTodos] = FrameWork.UseState([], "todos", TodoMVC);
-   ```
+This will result in the following HTML:
 
-4. **Handle User Interactions**
+```html
+<body id="app">
+	<section class="main">
+		<a href="/" data-use-router="true">My link</a>
+	</section>
+	<footer>
+		<p class="text-lg">paragraph tag with class text-lg inside footer tag</p>
+	</footer>
+</body>
+```
 
-   Implement functions to handle user interactions, such as adding, toggling, and removing elements. These functions should update the state using the `setState` function provided by `FrameWork` in `UseState`
-   `setState` is `setTodos` in the example
+## 2. **Creating elements**
 
-   ```
-   const addTodo = (event) => {
-        // Add todo logic
-        setTodos([...todos, { text: newValue, completed: false }]);
-    };
-   ```
+The Mini framework provides a set of predefined elements that you can use right out of the box. These elements are essentially wrappers around the createElement function and are available as mini.ELEMENT_NAME(). For example, to create a section element, you can use mini.section().
 
-5. **Create Elements**
+```javascript
+const mySection = mini.section({ class: 'my-class' }, 'This is a section')
+```
 
-   Use the `FrameWork.CreateElement` function to create and render HTML elements. This function takes three arguments: the element type, attributes, and child elements like text or other CreateElements.
+#### Custom Elements
 
-   In the example there is a normal CreateElement, 2 nested elements, first has multible attributes, second has an event as an argument
+If the element you need is not available as a predefined function, you can use the createElement function to create your own. The createElement function takes three arguments:
 
-   ```
-    FrameWork.CreateElement("div", { className: "my-class" },
-        FrameWork.CreateElement("input", {
-            type: "text",
-            value: variable,
-            placeholder: "Add a new todo",
-        }),
-        FrameWork.CreateElement("button", { onClick: function() }, "button")
-    );
-   ```
+    tag: The HTML tag name as a string (e.g., 'div', 'a', 'span').
+    attrs: An object containing any attributes you want to set on the element. This can include event listeners, which should be prefixed with 'on' (e.g., 'onclick', 'oninput').
+    children: Any child elements or text content. This can be a single value or an array.
 
-6. **Router Setup**
+````javascript
+export const createElement = (tag, attrs = {}, ...children) => { /* ... */ }```
+````
 
-   Initialize a `Router` instance to handle routing in your application. This is useful for creating different views or pages within your app.
+## 3. **Special Attributes**
 
-   ```
-   const container = document.getElementById("app");
-   const router = new Router(container);
-   ```
+The createElement function also supports special attributes. For example, if you want to make an anchor tag work with the router, you can add a data-use-router attribute:
 
-7. **Register Routes**
+```javascript
+const myLink = createElement('a', { href: '/home', 'data-use-router': true }, 'Go to Home')
+// or
+const myLink2 = mini.a({ href: '/home', 'data-use-router': true }, 'Go to home')
+```
 
-   Use the `registerRoute()` method to define routes and associate them with components or views. In the provided code, a default route / is registered to render the page.
+## 4. **State**
 
-   ```
-    router.registerRoute('/', () => TodoMVC());
-   ```
+To create a state variable, use the mini.createState function and pass the initial value as an argument.
 
-8. **Handle Route Changes**
+````javascript
+const todos = mini.createState([
+  { id: 0, name: 'Eat bananas', checked: false },
+  { id: 1, name: 'Eat apples', checked: false },
+  { id: 2, name: 'Finish this task', checked: false },
+]);```
+````
 
-   Finally, call `handleRouteChange()` to handle initial route setup and respond to route changes.
+#### Accessing state
 
-   ```
-    router.handleRouteChange();
-   ```
+```javascript
+console.log(todos.value) // Outputs the current value of todos
+```
+
+#### Updating state
+
+```javascript
+todos.value = [{ id: 3, name: 'New task', checked: false }]
+```
+
+#### Subscribing to state changes
+
+You can subscribe to changes in a state variable using the .subscribe method. This method takes a function that will be called whenever the state changes.
+
+```javascript
+const completedCount = mini.createState(0)
+todos.subscribe(updateCompletedCount)
+
+function updateCompletedCount() {
+	completedCount.value = todos.value.filter((todo) => !todo.checked).length
+}
+```
+
+#### Using State in Components
+
+```javascript
+const todosView = () => {
+	return mini.ul(
+		{ class: 'todo-list' },
+		...todos.value.map((todo, index) => {
+			// Your component logic here
+		})
+	)
+}
+```
+
+#### Binding to DOM
+
+**Syntax**
+
+```javascript
+mini.bindToDOM(viewFunction, state, keyFunction)
+
+//    viewFunction: A function that returns the HTML structure.
+//    state: The state object that the view is dependent on.
+//    keyFunction: A function to uniquely identify DOM elements.
+```
+
+**Examples**
+
+```javascript
+const main = () => {
+	return mini.section(
+		{ class: 'main' },
+		mini.input({ id: 'toggle-all', class: 'toggle-all', type: 'checkbox' }),
+		mini.label({ for: 'toggle-all', onclick: toggleAllTasks }, 'Mark all as complete'),
+		mini.bindToDOM(todosView, todos, keyFn)
+	)
+}
+```
+
+```javascript
+mini.bindToDOM(
+	() => {
+		clearBtn.style.display = todos.value.length !== 0 ? 'block' : 'none'
+		return clearBtn
+	},
+	todos,
+	() => 'clearButtonKey'
+)
+```
