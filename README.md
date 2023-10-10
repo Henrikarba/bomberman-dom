@@ -76,9 +76,11 @@ If the element you need is not available as a predefined function, you can use t
     attrs: An object containing any attributes you want to set on the element. This can include event listeners, which should be prefixed with 'on' (e.g., 'onclick', 'oninput').
     children: Any child elements or text content. This can be a single value or an array.
 
-````javascript
-export const createElement = (tag, attrs = {}, ...children) => { /* ... */ }```
-````
+```javascript
+export const createElement = (tag, attrs = {}, ...children) => {
+	/* ... */
+}
+```
 
 ## 3. **Special Attributes**
 
@@ -94,13 +96,13 @@ const myLink2 = mini.a({ href: '/home', 'data-use-router': true }, 'Go to home')
 
 To create a state variable, use the mini.createState function and pass the initial value as an argument.
 
-````javascript
+```javascript
 const todos = mini.createState([
-  { id: 0, name: 'Eat bananas', checked: false },
-  { id: 1, name: 'Eat apples', checked: false },
-  { id: 2, name: 'Finish this task', checked: false },
-]);```
-````
+	{ id: 0, name: 'Eat bananas', checked: false },
+	{ id: 1, name: 'Eat apples', checked: false },
+	{ id: 2, name: 'Finish this task', checked: false },
+])
+```
 
 #### Accessing state
 
