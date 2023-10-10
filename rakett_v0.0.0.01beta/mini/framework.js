@@ -48,6 +48,7 @@ export const createElement = (tag, attrs = {}, ...children) => {
 	})
 	return el
 }
+
 const bindToDOM = (getter, state, keyFn) => {
 	let element = getter()
 	if (!element) {

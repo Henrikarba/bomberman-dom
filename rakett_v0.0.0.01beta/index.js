@@ -104,15 +104,39 @@ const footer = () => {
 		if (todos.value.length === 0) return null
 		return mini.ul(
 			{ class: 'filters' },
-			mini.li({}, mini.a({ 'data-use-router': true, href: '/', onclick: () => (currentFilter.value = 'all') }, 'All')),
 			mini.li(
 				{},
-				mini.a({ 'data-use-router': true, href: '/active', onclick: () => (currentFilter.value = 'active') }, 'Active')
+				mini.a(
+					{
+						'data-use-router': true,
+						href: '/',
+						class: currentFilter.value === 'all' ? 'selected' : '',
+						onclick: () => (currentFilter.value = 'all'),
+					},
+					'All'
+				)
 			),
 			mini.li(
 				{},
 				mini.a(
-					{ 'data-use-router': true, href: '/completed', onclick: () => (currentFilter.value = 'completed') },
+					{
+						'data-use-router': true,
+						href: '/active',
+						class: currentFilter.value === 'active' ? 'selected' : '',
+						onclick: () => (currentFilter.value = 'active'),
+					},
+					'Active'
+				)
+			),
+			mini.li(
+				{},
+				mini.a(
+					{
+						'data-use-router': true,
+						href: '/completed',
+						class: currentFilter.value === 'completed' ? 'selected' : '',
+						onclick: () => (currentFilter.value = 'completed'),
+					},
 					'Completed'
 				)
 			)
@@ -142,9 +166,30 @@ const footer = () => {
 
 const ToDoApp = () => {
 	updateCompletedCount()
-	const todoSection = [main(), mini.bindToDOM(footer, todos, () => 'todos')]
 
-	return [mini.section({ class: 'todoapp' }, header(), ...todoSection), info()]
+	const todoAppSection = mini.section({ class: 'todoapp' }, header(), main())
+
+	const footerElement = footer()
+
+	if (todos.value.length > 0) {
+		todoAppSection.appendChild(footerElement)
+	} else {
+		if (footerElement.parentNode === todoAppSection) {
+			todoAppSection.removeChild(footerElement)
+		}
+	}
+
+	todos.subscribe(() => {
+		if (todos.value.length > 0) {
+			todoAppSection.appendChild(footerElement)
+		} else {
+			if (footerElement.parentNode === todoAppSection) {
+				todoAppSection.removeChild(footerElement)
+			}
+		}
+	})
+
+	return [todoAppSection, info()]
 }
 
 const clearCompleted = () => {
