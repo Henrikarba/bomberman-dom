@@ -69,7 +69,6 @@ const bindToDOM = (getter, state, keyFn) => {
 			const existingChild = keyMap.get(key)
 			if (existingChild) {
 				// Update the existing DOM element's properties
-				// (You can extend this to update other properties as needed)
 				existingChild.checked = child.checked
 				existingChild.classList = child.classList
 			} else {
