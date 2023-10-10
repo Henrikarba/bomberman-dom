@@ -48,6 +48,20 @@
 
 2. **Creating elements**
 
-_Predefined Elements_
-
 The Mini framework provides a set of predefined elements that you can use right out of the box. These elements are essentially wrappers around the createElement function and are available as mini.<elementName>. For example, to create a section element, you can use mini.section().
+
+```javascript
+const mySection = mini.section({ class: 'my-class' }, 'This is a section')
+```
+
+Custom Elements
+
+If the element you need is not available as a predefined function, you can use the createElement function to create your own. The createElement function takes three arguments:
+
+    tag: The HTML tag name as a string (e.g., 'div', 'a', 'span').
+    attrs: An object containing any attributes you want to set on the element. This can include event listeners, which should be prefixed with 'on' (e.g., 'onclick', 'oninput').
+    children: Any child elements or text content. This can be a single value or an array.
+
+````javascript
+export const createElement = (tag, attrs = {}, ...children) => { /* ... */ }```
+````
