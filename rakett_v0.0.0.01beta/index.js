@@ -7,7 +7,13 @@ const todos = mini.createState([
 	{ name: 'Eat apples', checked: false },
 	{ name: 'Finish this task', checked: false },
 ])
-let completedCount = mini.createState(todos.value.filter((item) => item.checked == false).length || 0)
+let completedCount = mini.createState(0)
+function updateCompletedCount() {
+	completedCount.value = todos.value.filter((todo) => !todo.checked).length
+}
+updateCompletedCount()
+
+todos.subscribe(updateCompletedCount)
 let newTodo = ''
 
 const header = () => {
@@ -26,11 +32,11 @@ const header = () => {
 				onkeydown: (e) => {
 					if (e.key === 'Enter') {
 						if (newTodo.trim() == '') return
-						completedCount.value += 1
 						const newTodos = [...todos.value, { name: newTodo.trim(), checked: false }]
 						todos.value = newTodos
 						newTodo = ''
 						e.target.value = ''
+						updateCompletedCount()
 					}
 				},
 			}),
@@ -57,7 +63,7 @@ const todosView = () => {
 				{},
 				mini.div(
 					{ class: 'view' },
-					mini.input({ class: 'toggle', type: 'checkbox', onclick: (e) => toggleCompleted(e) }),
+					mini.input({ class: 'toggle', type: 'checkbox', onclick: (e) => toggleCompleted(e, index) }),
 					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo.name),
 					mini.button({ class: 'destroy', onclick: () => destroyTodo(index) })
 				)
@@ -106,6 +112,7 @@ function handleEdit(event, index) {
 		editor.removeEventListener('blur', onBlur)
 		editor.removeEventListener('keydown', onKeyDown)
 		editor.remove()
+		updateCompletedCount()
 	}
 
 	const onKeyDown = (e) => {
@@ -122,6 +129,7 @@ function handleEdit(event, index) {
 			editor.removeEventListener('blur', onBlur)
 			editor.removeEventListener('keydown', onKeyDown)
 			editor.remove()
+			updateCompletedCount()
 		}
 	}
 
@@ -139,40 +147,36 @@ function toggleAllTasks() {
 			checkbox.checked = false
 			li.classList.remove('completed')
 		})
-		completedCount.value = todos.value.length
 	} else {
 		liElements.forEach((li) => {
 			const checkbox = li.querySelector('.toggle')
 			checkbox.checked = true
 			li.classList.add('completed')
 		})
-		completedCount.value = 0
 	}
+	updateCompletedCount()
 }
 
 function destroyTodo(index) {
 	const newTodos = [...todos.value]
-	const isCompleted = newTodos[index].checked // Assuming each todo object has a 'checked' property
 
 	newTodos.splice(index, 1)
 	todos.value = newTodos
-
-	if (isCompleted) {
-		completedCount.value -= 1
-	}
+	updateCompletedCount()
 }
 
-function toggleCompleted(e) {
+function toggleCompleted(e, index) {
 	const liElement = e.target.closest('li')
 	if (liElement) {
 		if (e.target.checked) {
+			todos.value[index].checked = true
 			liElement.classList.add('completed')
-			completedCount.value -= 1
 		} else {
+			todos.value[index].checked = false
 			liElement.classList.remove('completed')
-			completedCount.value += 1
 		}
 	}
+	updateCompletedCount()
 }
 
 const router = mini.router(container)
