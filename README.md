@@ -1,5 +1,14 @@
 # Getting started
 
+**[Task description](https://github.com/01-edu/public/tree/master/subjects/mini-framework)**
+**[Audit questions](https://github.com/01-edu/public/tree/master/subjects/mini-framework)**
+
+Created by
+
+- [@rakett1337](https://01.kood.tech/git/rakett1337)
+- [@henrikarba](https://01.kood.tech/git/Henrikarba)
+- [@karlutska](https://01.kood.tech/git/karlutska)
+
 ## 0. **TodoMVC**
 
 Open our [TodoMVC](https://todo-mvc-rust.vercel.app/) built in mini-framework
