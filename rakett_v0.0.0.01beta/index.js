@@ -75,9 +75,15 @@ const todosView = () => {
 const footer = () => {
 	return mini.footer(
 		{ class: 'footer' },
-		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount), ' items left')
+		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount), ' items left'),
+		mini.button({ class: "clear-completed", onclick: () => clearCompleted() }, 'clear')
 	)
 }
+
+const clearCompleted = () => {
+	const newTodos = todos.value.filter(todo => !todo.checked);
+	todos.value = newTodos
+};
 
 const counter = () => {
 	return mini.strong({}, String(completedCount.value))
