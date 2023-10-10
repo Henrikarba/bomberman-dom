@@ -7,42 +7,46 @@ const todos = mini.createState([
 	{ id: 1, name: 'Eat apples', checked: false },
 	{ id: 2, name: 'Finish this task', checked: false },
 ])
-
+const currentFilter = mini.createState('all') // 'all', 'active', 'completed'
 let completedCount = mini.createState(0)
 
 todos.subscribe(updateCompletedCount)
 let newTodo = ''
 
 const header = () => {
-	return mini.section(
-		{ class: 'todoapp' },
-		mini.header(
-			{ class: 'header' },
-			mini.h1({}, 'todos'),
-			mini.input({
-				class: 'new-todo',
-				placeholder: 'What needs to be done?',
-				autofocus: true,
-				oninput: (e) => {
-					newTodo = e.target.value
-				},
-				onkeydown: (e) => {
-					if (e.key === 'Enter') {
-						if (newTodo.trim() === '') return
+	return mini.header(
+		{ class: 'header' },
+		mini.h1({}, 'todos'),
+		mini.input({
+			class: 'new-todo',
+			placeholder: 'What needs to be done?',
+			autofocus: true,
+			oninput: (e) => {
+				newTodo = e.target.value
+			},
+			onkeydown: (e) => {
+				if (e.key === 'Enter') {
+					if (newTodo.trim() === '') return
 
-						const maxId = Math.max(0, ...todos.value.map((t) => t.id))
-						const newId = maxId + 1
+					const maxId = Math.max(0, ...todos.value.map((t) => t.id))
+					const newId = maxId + 1
 
-						const newTodos = [...todos.value, { id: newId, name: newTodo.trim(), checked: false }]
-						todos.value = newTodos
-						newTodo = ''
-						e.target.value = ''
-					}
-				},
-			}),
-			main(),
-			footer()
-		)
+					const newTodos = [...todos.value, { id: newId, name: newTodo.trim(), checked: false }]
+					todos.value = newTodos
+					newTodo = ''
+					e.target.value = ''
+				}
+			},
+		})
+	)
+}
+
+const info = () => {
+	return mini.footer(
+		{ class: 'info' },
+		mini.p({}, 'Double-click to edit a todo'),
+		mini.p({}, 'Created by', mini.a({ href: 'https://01.kood.tech/git/Henrikarba/mini-framework.git' }, 'The A-Team')),
+		mini.p({}, 'Part of ', mini.a({ href: 'http://todomvc.com' }, 'TodoMVC'))
 	)
 }
 
@@ -56,9 +60,21 @@ const main = () => {
 }
 
 const todosView = () => {
+	const filteredTodos = todos.value.filter((todo) => {
+		if (currentFilter.value === 'all') return true
+		if (currentFilter.value === 'active') return !todo.checked
+		if (currentFilter.value === 'completed') return todo.checked
+		return true
+	})
+
 	return mini.ul(
 		{ class: 'todo-list' },
-		...todos.value.map((todo, index) => {
+		...filteredTodos.map((todo, index) => {
+			const liAttributes = { id: `todo-${todo.id}` }
+			if (todo.checked) {
+				liAttributes.class = 'completed'
+			}
+
 			const inputAttrs = {
 				class: 'toggle',
 				type: 'checkbox',
@@ -67,8 +83,9 @@ const todosView = () => {
 			if (todo.checked) {
 				inputAttrs.checked = 'checked'
 			}
+
 			return mini.li(
-				{ id: `todo-${todo.id}` },
+				liAttributes,
 				mini.div(
 					{ class: 'view' },
 					mini.input(inputAttrs),
@@ -81,21 +98,38 @@ const todosView = () => {
 }
 
 const footer = () => {
+	const clearBtn = mini.button({ class: 'clear-completed', onclick: () => clearCompleted() }, 'clear')
+	const filters = mini.ul(
+		{ class: 'filters' },
+		mini.li({}, mini.a({ href: '/', onclick: () => (currentFilter.value = 'all') }, 'All')),
+		mini.li({}, mini.a({ href: '/active', onclick: () => (currentFilter.value = 'active') }, 'Active')),
+		mini.li({}, mini.a({ href: '/completed', onclick: () => (currentFilter.value = 'completed') }, 'Completed'))
+	)
+
 	return mini.footer(
 		{ class: 'footer' },
 		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount, keyFn), ' items left'),
-		mini.button({ class: 'clear-completed', onclick: () => clearCompleted() }, 'clear')
+		filters,
+		mini.bindToDOM(
+			() => {
+				clearBtn.style.display = todos.value.length !== 0 ? 'block' : 'none'
+				return clearBtn
+			},
+			todos,
+			() => 'clearButtonKey'
+		)
 	)
 }
-
 const ToDoApp = () => {
 	updateCompletedCount()
-	return header()
+	const todoSection = todos.value.length > 0 ? [main(), footer()] : []
+	return [mini.section({ class: 'todoapp' }, header(), ...todoSection), info()]
 }
 
 const clearCompleted = () => {
 	const newTodos = todos.value.filter((todo) => !todo.checked)
 	todos.value = newTodos
+	console.log(todos.value.length)
 }
 
 const counter = () => {
@@ -189,4 +223,6 @@ function updateCompletedCount() {
 
 const router = mini.router(container)
 router.registerRoute('/', ToDoApp)
+router.registerRoute('/active', ToDoApp)
+router.registerRoute('/completed', ToDoApp)
 router.navigateTo()

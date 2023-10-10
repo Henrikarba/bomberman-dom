@@ -48,27 +48,25 @@ export const createElement = (tag, attrs = {}, ...children) => {
 	})
 	return el
 }
-
 const bindToDOM = (getter, state, keyFn) => {
 	let element = getter()
 	if (!element) {
 		element = document.createComment('')
 	}
 
-	// Store a map of keys to child elements
 	const keyMap = new Map()
 
 	state.subscribe(() => {
 		const newElement = getter()
+		if (!newElement || !newElement.children) return // Add this check
+
 		const newChildren = Array.from(newElement.children)
 		const newKeyMap = new Map()
 
-		// Update existing children or add new ones
 		newChildren.forEach((child) => {
 			const key = keyFn(child)
 			const existingChild = keyMap.get(key)
 			if (existingChild) {
-				// Update the existing DOM element's properties
 				existingChild.checked = child.checked
 				existingChild.classList = child.classList
 			} else {
@@ -76,12 +74,10 @@ const bindToDOM = (getter, state, keyFn) => {
 			}
 		})
 
-		// Replace the old element with the new one
 		element.replaceWith(newElement)
 		element = newElement
 		keyMap.clear()
 
-		// Update the key map
 		for (const [key, child] of newKeyMap) {
 			keyMap.set(key, child)
 		}
