@@ -76,14 +76,14 @@ const footer = () => {
 	return mini.footer(
 		{ class: 'footer' },
 		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount), ' items left'),
-		mini.button({ class: "clear-completed", onclick: () => clearCompleted() }, 'clear')
+		mini.button({ class: 'clear-completed', onclick: () => clearCompleted() }, 'clear')
 	)
 }
 
 const clearCompleted = () => {
-	const newTodos = todos.value.filter(todo => !todo.checked);
+	const newTodos = todos.value.filter((todo) => !todo.checked)
 	todos.value = newTodos
-};
+}
 
 const counter = () => {
 	return mini.strong({}, String(completedCount.value))
@@ -174,13 +174,8 @@ function destroyTodo(index) {
 function toggleCompleted(e, index) {
 	const liElement = e.target.closest('li')
 	if (liElement) {
-		if (e.target.checked) {
-			todos.value[index].checked = true
-			liElement.classList.add('completed')
-		} else {
-			todos.value[index].checked = false
-			liElement.classList.remove('completed')
-		}
+		todos.value[index].checked = e.target.checked
+		liElement.classList.toggle('completed', e.target.checked)
 	}
 	updateCompletedCount()
 }

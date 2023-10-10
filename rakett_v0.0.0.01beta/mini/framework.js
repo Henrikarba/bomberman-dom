@@ -49,6 +49,24 @@ export const createElement = (tag, attrs = {}, ...children) => {
 	return el
 }
 
+const deepCopyAttributes = (oldElem, newElem) => {
+	if (!oldElem || !newElem) return
+
+	if (oldElem.className) {
+		newElem.className = oldElem.className
+	}
+	for (const attr of oldElem.attributes) {
+		newElem.setAttribute(attr.name, attr.value)
+	}
+	if (oldElem.type === 'checkbox') {
+		newElem.checked = oldElem.checked
+	}
+	const minChildrenLength = Math.min(oldElem.children.length, newElem.children.length)
+	for (let i = 0; i < minChildrenLength; i++) {
+		deepCopyAttributes(oldElem.children[i], newElem.children[i])
+	}
+}
+
 const bindToDOM = (getter, state) => {
 	let element = getter()
 	if (!element) {
@@ -56,12 +74,13 @@ const bindToDOM = (getter, state) => {
 	}
 	state.subscribe(() => {
 		const newElement = getter()
+		console.log(element, newElement)
+		deepCopyAttributes(element, newElement)
 		element.replaceWith(newElement)
 		element = newElement
 	})
 	return element
 }
-
 const createState = (initialValue) => {
 	let value = initialValue
 	const listeners = []
