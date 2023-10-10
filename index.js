@@ -26,6 +26,7 @@ const About = () => {
 		{ class: 'main' },
 		// Add attr data-use-router: true for router, other anchor tags will have default behavior
 		mini.a({ href: '/', 'data-use-router': true }, 'To home'),
+		mini.a({ href: 'http://google.com' }, 'To google'),
 		mini.p({}, 'This is about page!')
 	)
 }
