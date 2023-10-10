@@ -78,7 +78,7 @@ const todosView = () => {
 			const inputAttrs = {
 				class: 'toggle',
 				type: 'checkbox',
-				onclick: (e) => toggleCompleted(e, index),
+				onclick: (e) => toggleCompleted(e, todo.id),
 			}
 			if (todo.checked) {
 				inputAttrs.checked = 'checked'
@@ -90,7 +90,7 @@ const todosView = () => {
 					{ class: 'view' },
 					mini.input(inputAttrs),
 					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo.name),
-					mini.button({ class: 'destroy', onclick: (event) => destroyTodo(event, index) })
+					mini.button({ class: 'destroy', onclick: (event) => destroyTodo(event, todo.id) })
 				)
 			)
 		})
@@ -268,13 +268,15 @@ function updateTodo(id, changes) {
 	todos.value = newTodos
 }
 
-function toggleCompleted(e, index) {
-	const id = todos.value[index].id
-	updateTodo(id, { checked: e.target.checked })
+function toggleCompleted(e, id) {
+	const todo = todos.value.find((t) => t.id === id)
+	if (todo) {
+		todo.checked = e.target.checked
+		todos.value = [...todos.value]
+	}
 }
 
-function destroyTodo(e, index) {
-	const id = todos.value[index].id
+function destroyTodo(e, id) {
 	todos.value = todos.value.filter((t) => t.id !== id)
 }
 
