@@ -2,8 +2,12 @@ import mini from './mini/framework.js'
 
 const container = document.getElementById('app')
 
-const todos = mini.createState(['Eat bananas', 'Eat apples', 'Finish this task'])
-let completedCount = mini.createState(todos.value.length)
+const todos = mini.createState([
+	{ name: 'Eat bananas', checked: false },
+	{ name: 'Eat apples', checked: false },
+	{ name: 'Finish this task', checked: false },
+])
+let completedCount = mini.createState(todos.value.filter((item) => item.checked == false).length || 0)
 let newTodo = ''
 
 const header = () => {
@@ -23,7 +27,7 @@ const header = () => {
 					if (e.key === 'Enter') {
 						if (newTodo.trim() == '') return
 						completedCount.value += 1
-						const newTodos = [...todos.value, newTodo]
+						const newTodos = [...todos.value, { name: newTodo.trim(), checked: false }]
 						todos.value = newTodos
 						newTodo = ''
 						e.target.value = ''
@@ -54,7 +58,7 @@ const todosView = () => {
 				mini.div(
 					{ class: 'view' },
 					mini.input({ class: 'toggle', type: 'checkbox', onclick: (e) => toggleCompleted(e) }),
-					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo),
+					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo.name),
 					mini.button({ class: 'destroy', onclick: () => destroyTodo(index) })
 				)
 			)
@@ -85,7 +89,7 @@ function handleEdit(event, index) {
 	const liElement = event.target.closest('li')
 	liElement.classList.add('editing')
 
-	const editor = edit(todos.value[index])
+	const editor = edit(todos.value[index].name)
 	liElement.append(editor)
 	editor.focus()
 
@@ -94,7 +98,7 @@ function handleEdit(event, index) {
 		const newValue = editor.value.trim()
 		if (newValue) {
 			const newTodos = [...todos.value]
-			newTodos[index] = newValue
+			newTodos[index].name = newValue
 			todos.value = newTodos
 		}
 		liElement.classList.remove('editing')
@@ -111,7 +115,7 @@ function handleEdit(event, index) {
 			const newValue = editor.value.trim()
 			if (newValue) {
 				const newTodos = [...todos.value]
-				newTodos[index] = newValue
+				newTodos[index].name = newValue
 				todos.value = newTodos
 			}
 			liElement.classList.remove('editing')
@@ -126,25 +130,36 @@ function handleEdit(event, index) {
 }
 
 function toggleAllTasks() {
-	const taskCheckboxes = document.querySelectorAll('.toggle')
-	const allChecked = Array.from(taskCheckboxes).every((checkbox) => checkbox.checked)
+	const liElements = document.querySelectorAll('.todo-list li')
+	const allChecked = Array.from(liElements).every((li) => li.querySelector('.toggle').checked)
 
 	if (allChecked) {
-		taskCheckboxes.forEach((checkbox) => {
+		liElements.forEach((li) => {
+			const checkbox = li.querySelector('.toggle')
 			checkbox.checked = false
+			li.classList.remove('completed')
 		})
+		completedCount.value = todos.value.length
 	} else {
-		taskCheckboxes.forEach((checkbox) => {
+		liElements.forEach((li) => {
+			const checkbox = li.querySelector('.toggle')
 			checkbox.checked = true
+			li.classList.add('completed')
 		})
+		completedCount.value = 0
 	}
 }
 
 function destroyTodo(index) {
 	const newTodos = [...todos.value]
+	const isCompleted = newTodos[index].checked // Assuming each todo object has a 'checked' property
+
 	newTodos.splice(index, 1)
 	todos.value = newTodos
-	completedCount.value -= 1
+
+	if (isCompleted) {
+		completedCount.value -= 1
+	}
 }
 
 function toggleCompleted(e) {
