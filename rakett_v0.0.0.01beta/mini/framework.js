@@ -29,7 +29,7 @@ export const createElement = (tag, attrs = {}, ...children) => {
 		} else el.setAttribute(key, value)
 	}
 
-	if (tag === 'a' && attrs.href) {
+	if (tag === 'a' && attrs['data-use-router']) {
 		el.addEventListener('click', (e) => {
 			e.preventDefault()
 			const path = attrs.href
@@ -58,7 +58,7 @@ const bindToDOM = (getter, state, keyFn) => {
 
 	state.subscribe(() => {
 		const newElement = getter()
-		if (!newElement || !newElement.children) return // Add this check
+		if (!newElement || !newElement.children) return
 
 		const newChildren = Array.from(newElement.children)
 		const newKeyMap = new Map()

@@ -15,16 +15,17 @@ const Router = (container) => {
 		notFound = handler
 	}
 
-	const navigateTo = () => {
+	const navigateTo = (e) => {
 		const path = window.location.pathname
 		const handler = routes[path] || notFound
 		if (handler) render(container, handler)
 		else console.error(`handler for ${path} not found. consider registering notFoundHandler`)
 	}
 
-	window.addEventListener('popstate', navigateTo)
-	window.addEventListener('navigate', () => {
-		navigateTo()
+	window.addEventListener('popstate', () => navigateTo())
+	window.addEventListener('navigate', (e) => {
+		console.log(e.target.attr)
+		navigateTo(e)
 	})
 
 	return { registerRoute, notFoundHandler, navigateTo }
