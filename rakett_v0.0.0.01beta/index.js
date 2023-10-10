@@ -1,5 +1,4 @@
 import mini from './mini/framework.js'
-import { render } from './mini/framework.js'
 
 const container = document.getElementById('app')
 
@@ -10,10 +9,6 @@ const todos = mini.createState([
 ])
 
 let completedCount = mini.createState(0)
-function updateCompletedCount() {
-	completedCount.value = todos.value.filter((todo) => !todo.checked).length
-}
-updateCompletedCount()
 
 todos.subscribe(updateCompletedCount)
 let newTodo = ''
@@ -93,7 +88,10 @@ const footer = () => {
 	)
 }
 
-const ToDoApp = () => header()
+const ToDoApp = () => {
+	updateCompletedCount()
+	return header()
+}
 
 const clearCompleted = () => {
 	const newTodos = todos.value.filter((todo) => !todo.checked)
@@ -183,6 +181,10 @@ function destroyTodo(e, index) {
 
 const keyFn = (element) => {
 	return element.id
+}
+
+function updateCompletedCount() {
+	completedCount.value = todos.value.filter((todo) => !todo.checked).length
 }
 
 const router = mini.router(container)
