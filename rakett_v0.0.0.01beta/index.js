@@ -3,14 +3,16 @@ import mini from './mini/framework.js'
 const container = document.getElementById('app')
 
 const todos = mini.createState([
-	{ id: 0, name: 'Eat bananas', checked: false },
-	{ id: 1, name: 'Eat apples', checked: false },
-	{ id: 2, name: 'Finish this task', checked: false },
+	// { id: 0, name: 'Eat bananas', checked: false },
+	// { id: 1, name: 'Eat apples', checked: false },
+	// { id: 2, name: 'Finish this task', checked: false },
 ])
 const currentFilter = mini.createState('all') // 'all', 'active', 'completed'
 let completedCount = mini.createState(0)
+let TodoCount = mini.createState(0)
 
 todos.subscribe(updateCompletedCount)
+todos.subscribe(updateTodoCount)
 let newTodo = ''
 
 const header = () => {
@@ -122,14 +124,13 @@ const footer = () => {
 }
 const ToDoApp = () => {
 	updateCompletedCount()
-	const todoSection = todos.value.length > 0 ? [main(), footer()] : []
+	const todoSection = [main(), footer()]
 	return [mini.section({ class: 'todoapp' }, header(), ...todoSection), info()]
 }
 
 const clearCompleted = () => {
 	const newTodos = todos.value.filter((todo) => !todo.checked)
 	todos.value = newTodos
-	console.log(todos.value.length)
 }
 
 const counter = () => {
@@ -219,6 +220,10 @@ const keyFn = (element) => {
 
 function updateCompletedCount() {
 	completedCount.value = todos.value.filter((todo) => !todo.checked).length
+}
+
+function updateTodoCount() {
+	TodoCount.value = todos.value.length
 }
 
 const router = mini.router(container)
