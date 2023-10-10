@@ -2,7 +2,7 @@
 
 ## 0. **TodoMVC**
 
-Open index.html to see [TodoMVC](https://todomvc.com/) built in mini-framework
+Open our [TodoMVC](https://todo-mvc-blush.vercel.app/) built in mini-framework
 
 ## 1. **Basic starter example**
 
