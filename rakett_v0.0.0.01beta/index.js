@@ -9,7 +9,6 @@ const todos = mini.createState([
 ])
 const currentFilter = mini.createState('all') // 'all', 'active', 'completed'
 let completedCount = mini.createState(0)
-let TodoCount = mini.createState(0)
 
 todos.subscribe(updateCompletedCount)
 let newTodo = ''
@@ -99,30 +98,40 @@ const todosView = () => {
 }
 
 const footer = () => {
-	const clearBtn = mini.button({ class: 'clear-completed', onclick: () => clearCompleted() }, 'clear')
-	const filters = mini.ul(
-		{ class: 'filters' },
-		mini.li({}, mini.a({ 'data-use-router': true, href: '/', onclick: () => (currentFilter.value = 'all') }, 'All')),
-		mini.li(
-			{},
-			mini.a({ 'data-use-router': true, href: '/active', onclick: () => (currentFilter.value = 'active') }, 'Active')
-		),
-		mini.li(
-			{},
-			mini.a(
-				{ 'data-use-router': true, href: '/completed', onclick: () => (currentFilter.value = 'completed') },
-				'Completed'
+	const clearBtn = mini.button({ class: 'clear-completed', onclick: () => clearCompleted() }, 'Clear completed')
+
+	const filters = () => {
+		if (todos.value.length === 0) return null
+		return mini.ul(
+			{ class: 'filters' },
+			mini.li({}, mini.a({ 'data-use-router': true, href: '/', onclick: () => (currentFilter.value = 'all') }, 'All')),
+			mini.li(
+				{},
+				mini.a({ 'data-use-router': true, href: '/active', onclick: () => (currentFilter.value = 'active') }, 'Active')
+			),
+			mini.li(
+				{},
+				mini.a(
+					{ 'data-use-router': true, href: '/completed', onclick: () => (currentFilter.value = 'completed') },
+					'Completed'
+				)
 			)
 		)
-	)
+	}
+
+	const itemCount = () => {
+		if (todos.value.length === 0) return null
+		return mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount, keyFn), ' items left')
+	}
 
 	return mini.footer(
 		{ class: 'footer' },
-		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount, keyFn), ' items left'),
-		filters,
+		mini.bindToDOM(itemCount, todos, () => 'itemCountKey'),
+		mini.bindToDOM(filters, todos, () => 'filtersKey'),
 		mini.bindToDOM(
 			() => {
-				clearBtn.style.display = todos.value.length !== 0 ? 'block' : 'none'
+				const hasCheckedItems = todos.value.some((todo) => todo.checked)
+				clearBtn.style.display = hasCheckedItems ? 'block' : 'none'
 				return clearBtn
 			},
 			todos,
@@ -130,9 +139,11 @@ const footer = () => {
 		)
 	)
 }
+
 const ToDoApp = () => {
 	updateCompletedCount()
-	const todoSection = [main(), footer()]
+	const todoSection = [main(), mini.bindToDOM(footer, todos, () => 'todos')]
+
 	return [mini.section({ class: 'todoapp' }, header(), ...todoSection), info()]
 }
 
