@@ -1,12 +1,14 @@
 import mini from './mini/framework.js'
+import { render } from './mini/framework.js'
 
 const container = document.getElementById('app')
 
 const todos = mini.createState([
-	{ name: 'Eat bananas', checked: false },
-	{ name: 'Eat apples', checked: false },
-	{ name: 'Finish this task', checked: false },
+	{ id: 0, name: 'Eat bananas', checked: false },
+	{ id: 1, name: 'Eat apples', checked: false },
+	{ id: 2, name: 'Finish this task', checked: false },
 ])
+
 let completedCount = mini.createState(0)
 function updateCompletedCount() {
 	completedCount.value = todos.value.filter((todo) => !todo.checked).length
@@ -31,12 +33,15 @@ const header = () => {
 				},
 				onkeydown: (e) => {
 					if (e.key === 'Enter') {
-						if (newTodo.trim() == '') return
-						const newTodos = [...todos.value, { name: newTodo.trim(), checked: false }]
+						if (newTodo.trim() === '') return
+
+						const maxId = Math.max(0, ...todos.value.map((t) => t.id))
+						const newId = maxId + 1
+
+						const newTodos = [...todos.value, { id: newId, name: newTodo.trim(), checked: false }]
 						todos.value = newTodos
 						newTodo = ''
 						e.target.value = ''
-						updateCompletedCount()
 					}
 				},
 			}),
@@ -51,34 +56,44 @@ const main = () => {
 		{ class: 'main' },
 		mini.input({ id: 'toggle-all', class: 'toggle-all', type: 'checkbox' }),
 		mini.label({ for: 'toggle-all', onclick: toggleAllTasks }, 'Mark all as complete'),
-		mini.bindToDOM(todosView, todos)
+		mini.bindToDOM(todosView, todos, keyFn)
 	)
 }
 
 const todosView = () => {
 	return mini.ul(
 		{ class: 'todo-list' },
-		...todos.value.map((todo, index) =>
-			mini.li(
-				{},
+		...todos.value.map((todo, index) => {
+			const inputAttrs = {
+				class: 'toggle',
+				type: 'checkbox',
+				onclick: (e) => toggleCompleted(e, index),
+			}
+			if (todo.checked) {
+				inputAttrs.checked = 'checked'
+			}
+			return mini.li(
+				{ id: `todo-${todo.id}` },
 				mini.div(
 					{ class: 'view' },
-					mini.input({ class: 'toggle', type: 'checkbox', onclick: (e) => toggleCompleted(e, index) }),
+					mini.input(inputAttrs),
 					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo.name),
-					mini.button({ class: 'destroy', onclick: () => destroyTodo(index) })
+					mini.button({ class: 'destroy', onclick: (event) => destroyTodo(event, index) })
 				)
 			)
-		)
+		})
 	)
 }
 
 const footer = () => {
 	return mini.footer(
 		{ class: 'footer' },
-		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount), ' items left'),
+		mini.span({ class: 'todo-count' }, mini.bindToDOM(counter, completedCount, keyFn), ' items left'),
 		mini.button({ class: 'clear-completed', onclick: () => clearCompleted() }, 'clear')
 	)
 }
+
+const ToDoApp = () => header()
 
 const clearCompleted = () => {
 	const newTodos = todos.value.filter((todo) => !todo.checked)
@@ -92,8 +107,6 @@ const counter = () => {
 const edit = (value) => {
 	return mini.input({ id: 'edit', class: 'edit', value: value })
 }
-
-const ToDoApp = () => header()
 
 function handleEdit(event, index) {
 	let editorRemoved = false
@@ -118,7 +131,6 @@ function handleEdit(event, index) {
 		editor.removeEventListener('blur', onBlur)
 		editor.removeEventListener('keydown', onKeyDown)
 		editor.remove()
-		updateCompletedCount()
 	}
 
 	const onKeyDown = (e) => {
@@ -135,7 +147,6 @@ function handleEdit(event, index) {
 			editor.removeEventListener('blur', onBlur)
 			editor.removeEventListener('keydown', onKeyDown)
 			editor.remove()
-			updateCompletedCount()
 		}
 	}
 
@@ -144,40 +155,34 @@ function handleEdit(event, index) {
 }
 
 function toggleAllTasks() {
-	const liElements = document.querySelectorAll('.todo-list li')
-	const allChecked = Array.from(liElements).every((li) => li.querySelector('.toggle').checked)
+	const allChecked = todos.value.every((todo) => todo.checked)
+	const newTodos = todos.value.map((todo) => ({
+		...todo,
+		checked: !allChecked,
+	}))
 
-	if (allChecked) {
-		liElements.forEach((li) => {
-			const checkbox = li.querySelector('.toggle')
-			checkbox.checked = false
-			li.classList.remove('completed')
-		})
-	} else {
-		liElements.forEach((li) => {
-			const checkbox = li.querySelector('.toggle')
-			checkbox.checked = true
-			li.classList.add('completed')
-		})
-	}
-	updateCompletedCount()
+	todos.value = newTodos
 }
 
-function destroyTodo(index) {
-	const newTodos = [...todos.value]
-
-	newTodos.splice(index, 1)
+function updateTodo(id, changes) {
+	const newTodos = todos.value.map((todo) => {
+		return todo.id === id ? { ...todo, ...changes } : todo
+	})
 	todos.value = newTodos
-	updateCompletedCount()
 }
 
 function toggleCompleted(e, index) {
-	const liElement = e.target.closest('li')
-	if (liElement) {
-		todos.value[index].checked = e.target.checked
-		liElement.classList.toggle('completed', e.target.checked)
-	}
-	updateCompletedCount()
+	const id = todos.value[index].id
+	updateTodo(id, { checked: e.target.checked })
+}
+
+function destroyTodo(e, index) {
+	const id = todos.value[index].id
+	todos.value = todos.value.filter((t) => t.id !== id)
+}
+
+const keyFn = (element) => {
+	return element.id
 }
 
 const router = mini.router(container)

@@ -49,40 +49,51 @@ export const createElement = (tag, attrs = {}, ...children) => {
 	return el
 }
 
-const deepCopyAttributes = (oldElem, newElem) => {
-	if (!oldElem || !newElem) return
-
-	if (oldElem.className) {
-		newElem.className = oldElem.className
-	}
-	for (const attr of oldElem.attributes) {
-		newElem.setAttribute(attr.name, attr.value)
-	}
-	if (oldElem.type === 'checkbox') {
-		newElem.checked = oldElem.checked
-	}
-	const minChildrenLength = Math.min(oldElem.children.length, newElem.children.length)
-	for (let i = 0; i < minChildrenLength; i++) {
-		deepCopyAttributes(oldElem.children[i], newElem.children[i])
-	}
-}
-
-const bindToDOM = (getter, state) => {
+const bindToDOM = (getter, state, keyFn) => {
 	let element = getter()
 	if (!element) {
 		element = document.createComment('')
 	}
+
+	// Store a map of keys to child elements
+	const keyMap = new Map()
+
 	state.subscribe(() => {
 		const newElement = getter()
-		console.log(element, newElement)
-		deepCopyAttributes(element, newElement)
+		const newChildren = Array.from(newElement.children)
+		const newKeyMap = new Map()
+
+		// Update existing children or add new ones
+		newChildren.forEach((child) => {
+			const key = keyFn(child)
+			const existingChild = keyMap.get(key)
+			if (existingChild) {
+				// Update the existing DOM element's properties
+				// (You can extend this to update other properties as needed)
+				existingChild.checked = child.checked
+				existingChild.classList = child.classList
+			} else {
+				newKeyMap.set(key, child)
+			}
+		})
+
+		// Replace the old element with the new one
 		element.replaceWith(newElement)
 		element = newElement
+		keyMap.clear()
+
+		// Update the key map
+		for (const [key, child] of newKeyMap) {
+			keyMap.set(key, child)
+		}
 	})
+
 	return element
 }
+
 const createState = (initialValue) => {
 	let value = initialValue
+	let previousValue = null
 	const listeners = []
 
 	return {
@@ -90,8 +101,9 @@ const createState = (initialValue) => {
 			return value
 		},
 		set value(newValue) {
+			previousValue = value
 			value = newValue
-			listeners.forEach((listener) => listener(value))
+			listeners.forEach((listener) => listener(value, previousValue))
 		},
 		subscribe(listener) {
 			listeners.push(listener)
@@ -99,6 +111,9 @@ const createState = (initialValue) => {
 				const index = listeners.indexOf(listener)
 				listeners.splice(index, 1)
 			}
+		},
+		get previousValue() {
+			return previousValue
 		},
 	}
 }
@@ -111,5 +126,4 @@ const mini = {
 	bindToDOM,
 	...el,
 }
-
 export default mini
