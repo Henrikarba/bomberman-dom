@@ -46,4 +46,8 @@
    </body>
    ```
 
-2.
+2. **Creating elements**
+
+_Predefined Elements_
+
+The Mini framework provides a set of predefined elements that you can use right out of the box. These elements are essentially wrappers around the createElement function and are available as mini.<elementName>. For example, to create a section element, you can use mini.section().
