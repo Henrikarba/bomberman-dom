@@ -1,6 +1,7 @@
 # Getting started
 
 **[Task description](https://github.com/01-edu/public/tree/master/subjects/mini-framework)**
+
 **[Audit questions](https://github.com/01-edu/public/tree/master/subjects/mini-framework)**
 
 Created by
@@ -11,7 +12,7 @@ Created by
 
 ## 0. **TodoMVC**
 
-Open our [TodoMVC](https://todo-mvc-rust.vercel.app/) built in mini-framework
+Open our [TodoMVC](https://todo-mvc-rust.vercel.app/) built in mini-framework to see it in action!
 
 ## 1. **Basic starter example**
 
