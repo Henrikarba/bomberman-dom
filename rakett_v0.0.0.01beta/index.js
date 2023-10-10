@@ -2,7 +2,11 @@ import mini from './mini/framework.js'
 
 const container = document.getElementById('app')
 
-const todos = mini.createState(['Eat bananas', 'Eat apples', 'Finish this task'])
+const todos = mini.createState([
+	{ name: 'Eat bananas', checked: true },
+	{ name: 'Eat apples', checked: false },
+	{ name: 'Finish this task', checked: false },
+])
 let completedCount = mini.createState(todos.value.length)
 let newTodo = ''
 
@@ -23,7 +27,7 @@ const header = () => {
 					if (e.key === 'Enter') {
 						if (newTodo.trim() == '') return
 						completedCount.value += 1
-						const newTodos = [...todos.value, newTodo]
+						const newTodos = [...todos.value, { name: newTodo, checked: false }]
 						todos.value = newTodos
 						newTodo = ''
 						e.target.value = ''
@@ -50,18 +54,22 @@ const todosView = () => {
 		{ class: 'todo-list' },
 		...todos.value.map((todo, index) =>
 			mini.li(
-				{},
+				{ class: todo.checked ? 'completed' : '' },
 				mini.div(
 					{ class: 'view' },
-					mini.input({ class: 'toggle', type: 'checkbox', onclick: (e) => toggleCompleted(e) }),
-					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo),
+					mini.input({
+						class: 'toggle',
+						type: 'checkbox',
+						checked: todo.checked,
+						onclick: (e) => toggleCompleted(e, index),
+					}),
+					mini.label({ ondblclick: (event) => handleEdit(event, index) }, todo.name),
 					mini.button({ class: 'destroy', onclick: () => destroyTodo(index) })
 				)
 			)
 		)
 	)
 }
-
 const footer = () => {
 	return mini.footer(
 		{ class: 'footer' },
@@ -85,7 +93,7 @@ function handleEdit(event, index) {
 	const liElement = event.target.closest('li')
 	liElement.classList.add('editing')
 
-	const editor = edit(todos.value[index])
+	const editor = edit(todos.value[index].name)
 	liElement.append(editor)
 	editor.focus()
 
@@ -94,7 +102,7 @@ function handleEdit(event, index) {
 		const newValue = editor.value.trim()
 		if (newValue) {
 			const newTodos = [...todos.value]
-			newTodos[index] = newValue
+			newTodos[index].name = newValue
 			todos.value = newTodos
 		}
 		liElement.classList.remove('editing')
@@ -147,10 +155,14 @@ function destroyTodo(index) {
 	completedCount.value -= 1
 }
 
-function toggleCompleted(e) {
+function toggleCompleted(e, index) {
 	const liElement = e.target.closest('li')
 	if (liElement) {
-		if (e.target.checked) {
+		const newTodos = [...todos.value]
+		newTodos[index].checked = !newTodos[index].checked
+		todos.value = newTodos
+
+		if (newTodos[index].checked) {
 			liElement.classList.add('completed')
 			completedCount.value -= 1
 		} else {
