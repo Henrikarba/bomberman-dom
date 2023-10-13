@@ -8,7 +8,15 @@ export function render(target, component) {
 	if (!isValidHTMLElement(target)) throw new Error(`${target} is not a valid HTML element`)
 	target.innerHTML = ''
 
-	const elements = component()
+	let elements
+	if (typeof component === 'function') {
+		elements = component()
+	} else if (isValidHTMLElement(component)) {
+		elements = component
+	} else {
+		throw new Error('Component must be either a function or a valid HTML element')
+	}
+
 	if (Array.isArray(elements)) {
 		elements.forEach((element) => {
 			if (isValidHTMLElement(element)) {
@@ -54,7 +62,6 @@ const bindToDOM = (getter, state, keyFn) => {
 	if (!element) {
 		element = document.createComment('')
 	}
-
 	const keyMap = new Map()
 
 	state.subscribe(() => {
@@ -114,8 +121,13 @@ const createState = (initialValue) => {
 	}
 }
 
+function createApp(element_id) {
+	return document.getElementById(element_id)
+}
+
 const mini = {
 	render,
+	createApp,
 	createElement,
 	createState,
 	router,

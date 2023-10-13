@@ -1,0 +1,96 @@
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+#app {
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	align-items: center;
+}
+
+#game {
+	position: relative;
+}
+
+.flex {
+	display: flex;
+}
+
+.cell {
+	width: 64px;
+	height: 64px;
+	background-color: red;
+	border: 1px solid black;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wall {
+	width: 64px;
+	height: 64px;
+	background-color: black;
+	border: 1px solid black;
+}
+
+.bomb {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./bomb64.png');
+	background-position: 0 0;
+}
+
+.destroyable {
+	width: 64px;
+	height: 64px;
+	background-color: orange;
+	border: 1px solid rgb(0, 255, 13);
+}
+
+.explosion {
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	scale: 2;
+	background-image: url('./explosion.png');
+	background-position: 0 0;
+}
+
+#player1 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	border: 1px solid green;
+	background-position: 0 0;
+}
+
+#player2 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+}
+
+#player3 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+}
+
+#player4 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+}
