@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bomberman-dom/server"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ func main() {
 		http.ServeFile(w, r, "index.html")
 	})
 
-	http.HandleFunc("/ws", websocketHandler)
+	http.HandleFunc("/ws", server.WebsocketHandler)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%v", 5000), nil)
 	if err != nil {

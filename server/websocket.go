@@ -1,6 +1,7 @@
-package main
+package server
 
 import (
+	"bomberman-dom/game"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,39 +11,19 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Movement struct {
-	Type     string `json:"type"`
-	Movement struct {
-		Direction string `json:"direction"`
-	} `json:"movement"`
-}
-
-type Player struct {
-	ID        int    `json:"id"`
-	X         int    `json:"x"`
-	Y         int    `json:"y"`
-	Direction string `json:"direction"`
-	Speed     int    `json:"speed,omitempty"`
-}
-
-type PositionUpdate struct {
-	Type string   `json:"type"`
-	Data []Player `json:"players"`
-}
-
 var upgrader = websocket.Upgrader{
 	WriteBufferSize: 256,
 	ReadBufferSize:  256,
 }
 
-func websocketHandler(w http.ResponseWriter, r *http.Request) {
+func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	gameboard := createMap()
+	gameboard := game.CreateMap()
 	jsonData, err := json.Marshal(gameboard)
 	if err := conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
 		log.Println(err)
@@ -50,8 +31,8 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// playerUpdates := make(chan Player)
-	players := []Player{}
-	players = append(players, Player{
+	players := []game.Player{}
+	players = append(players, game.Player{
 		ID:    1,
 		X:     0, // Initialize to some default or calculated value
 		Y:     0, // Initialize to some default or calculated value
@@ -84,7 +65,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 						newX += stepSize
 					}
 					fmt.Println(newX)
-					if !isCollision(gameboard, newX, newY) {
+					if !game.IsCollision(gameboard, newX, newY) {
 
 						players[i].X = newX
 						players[i].Y = newY
@@ -95,7 +76,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			positionUpdate := PositionUpdate{
+			positionUpdate := game.PositionUpdate{
 				Type: "player_position_update",
 				Data: players,
 			}
@@ -107,7 +88,7 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	for {
-		var move Movement
+		var move game.Movement
 		err := conn.ReadJSON(&move)
 		if err != nil {
 			return

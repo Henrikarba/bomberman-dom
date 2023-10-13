@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ const (
 
 const PixelBlockSize = 64
 
-func createMap() [][]string {
+func CreateMap() [][]string {
 	rows, cols := 13, 19
 	board := make([][]string, rows)
 	for i := range board {
@@ -70,6 +70,7 @@ func createMap() [][]string {
 	board[rows-1][cols-1] = "4"
 
 	// Print the board for demonstration
+	fmt.Println("Map Created:")
 	for _, row := range board {
 		for _, cell := range row {
 			fmt.Printf("%2s", cell)
@@ -80,21 +81,7 @@ func createMap() [][]string {
 	return board
 }
 
-func clearPlayerSpace(board [][]string, x, y int) {
-	for dx := 0; dx <= 2; dx++ {
-		for dy := 0; dy <= 2; dy++ {
-			newX, newY := x+dx, y+dy
-			if (dx == 2 && dy == 2) || (dx == 2 && dy == 1) || (dx == 1 && dy == 2) {
-				continue // Skip diagonal and far diagonal spaces
-			}
-			if newX < len(board) && newY < len(board[0]) && board[newX][newY] != Wall {
-				board[newX][newY] = Empty
-			}
-		}
-	}
-}
-
-func isCollision(gameboard [][]string, x, y int) bool {
+func IsCollision(gameboard [][]string, x, y int) bool {
 	rows := len(gameboard)
 	if rows == 0 {
 		return false
@@ -117,4 +104,18 @@ func isCollision(gameboard [][]string, x, y int) bool {
 		gameboard[topRightRow][topRightCol] == Wall ||
 		gameboard[bottomLeftRow][bottomLeftCol] == Wall ||
 		gameboard[bottomRightRow][bottomRightCol] == Wall
+}
+
+func clearPlayerSpace(board [][]string, x, y int) {
+	for dx := 0; dx <= 2; dx++ {
+		for dy := 0; dy <= 2; dy++ {
+			newX, newY := x+dx, y+dy
+			if (dx == 2 && dy == 2) || (dx == 2 && dy == 1) || (dx == 1 && dy == 2) {
+				continue // Skip diagonal and far diagonal spaces
+			}
+			if newX < len(board) && newY < len(board[0]) && board[newX][newY] != Wall {
+				board[newX][newY] = Empty
+			}
+		}
+	}
 }
