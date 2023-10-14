@@ -8,9 +8,10 @@ import (
 type GameState struct {
 	Type string `json:"type"`
 
-	Map         [][]string    `json:"map,omitempty"`
-	BlockUpdate []BlockUpdate `json:"block_updates,omitempty"`
-	Players     []Player      `json:"players,omitempty"`
+	Map         *[][]string             `json:"map,omitempty"`
+	BlockUpdate *[]BlockUpdate          `json:"block_updates,omitempty"`
+	Players     *[]Player               `json:"players,omitempty"`
+	KeysPressed map[int]map[string]bool `json:"-"`
 }
 
 type BlockUpdate struct {
@@ -19,31 +20,32 @@ type BlockUpdate struct {
 	Block string `json:"block"`
 }
 
-func HandleKeyPress(players []Player, gameboard *[][]string, keysPressed map[int]map[string]bool, blockUpdates *[]BlockUpdate) {
-	for i, player := range players {
-		if keys, ok := keysPressed[player.ID]; ok {
+func HandleKeyPress(s *GameState) {
+	for i, player := range *s.Players {
+		if keys, ok := s.KeysPressed[player.ID]; ok {
+			s.Type = "game_state_update"
 			if keys["enter"] && player.AvailableBombs > 0 {
-				(*gameboard)[player.Y][player.X] = "B"
-				*blockUpdates = append(*blockUpdates, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
+				s.Map[player.Y][player.X] = "B"
+				*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
 			}
 
 			if time.Since(player.LastMoveTime) >= time.Second/time.Duration(player.Speed*2) {
 				newX, newY := player.X, player.Y
 				if keys["w"] {
 					newY -= 1
-					players[i].Direction = "up"
+					(*s.Players)[i].Direction = "up"
 				} else if keys["s"] {
 					newY += 1
-					players[i].Direction = "down"
+					(*s.Players)[i].Direction = "down"
 				} else if keys["a"] {
 					newX -= 1
-					players[i].Direction = "left"
+					(*s.Players)[i].Direction = "left"
 				} else if keys["d"] {
 					newX += 1
-					players[i].Direction = "right"
+					(*s.Players)[i].Direction = "right"
 				}
 
-				collision, typeof := IsCollision(*gameboard, newX, newY, players, player.ID)
+				collision, typeof := IsCollision(*s.Map, newX, newY, *s.Players, player.ID)
 				if collision {
 					if typeof == "Flame" {
 						fmt.Println("Hit flame")
@@ -53,10 +55,9 @@ func HandleKeyPress(players []Player, gameboard *[][]string, keysPressed map[int
 						fmt.Println("Hit a wall or a bomb")
 					}
 				} else {
-					players[i].X = newX
-					players[i].Y = newY
+					(*s.Players)[i].X = newX
+					(*s.Players)[i].Y = newY
 				}
-
 			}
 		}
 	}

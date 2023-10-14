@@ -2,7 +2,6 @@ package server
 
 import (
 	"bomberman-dom/game"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -27,95 +26,67 @@ func getNextPlayerID() int {
 	return id
 }
 
-func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
 	playerID := getNextPlayerID()
 	if playerID > 4 {
 		log.Println("Maximum players reached")
 		return
 	}
 
-	gameboard := game.CreateMap()
-	newPlayer := game.NewPlayer(1, gameboard)
-	newPlayer2 := game.NewPlayer(2, gameboard)
-	newPlayer3 := game.NewPlayer(3, gameboard)
-	newPlayer4 := game.NewPlayer(4, gameboard)
-	players := []game.Player{}
-	players = append(players, *newPlayer, *newPlayer2, *newPlayer3, *newPlayer4)
-
-	keysPressed := make(map[int]map[string]bool)
-	keysPressed[playerID] = make(map[string]bool)
-	keyEventChannel := make(chan game.Movement, 100) // Buffered channel
-	var blockUpdates []game.BlockUpdate
-
-	go func() {
-		ticker := time.NewTicker(16 * time.Millisecond)
-		for range ticker.C {
-			for len(keyEventChannel) > 0 {
-				move := <-keyEventChannel
-				for k := range keysPressed[playerID] {
-					keysPressed[playerID][k] = false
-
-				}
-				for _, key := range move.Keys {
-					keysPressed[playerID][key] = true
-					game.HandleKeyPress(players, &gameboard, keysPressed, &blockUpdates)
-				}
-			}
-
-			gameState := game.GameState{
-				Players: players,
-			}
-
-			if len(blockUpdates) > 0 {
-				gameState.Type = "map_state_update"
-				gameState.BlockUpdate = blockUpdates
-			} else {
-				gameState.Type = "player_position_update"
-			}
-
-			// Send the game state
-			if err := conn.WriteJSON(gameState); err != nil {
-				log.Println("Write JSON error:", err)
-			}
-
-			// Clear the block updates
-			blockUpdates = []game.BlockUpdate{}
-		}
-	}()
-
-	// Send initial game state
-	lobby := game.GameState{
-		Type:    "new_game",
-		Map:     gameboard,
-		Players: players,
+	s.AddConn(playerID, conn)
+	defer s.RemoveConn(playerID)
+	if playerID == 1 {
+		s.NewGame()
+	} else {
+		newPlayer := game.NewPlayer(playerID, *s.Game.Map)
+		updatedPlayers := append(*s.Game.Players, *newPlayer)
+		s.Game.Players = &updatedPlayers
 	}
-	conn.WriteJSON(lobby)
 
-	// Main loop for listening to key events
+	s.Game.KeysPressed[playerID] = make(map[string]bool)
+	s.ControlChan <- "start"
+
+	s.Game.Type = "new_game"
+	conn.WriteJSON(s.Game)
 	var lastKeydownTime time.Time
 	debounceDuration := 50 * time.Millisecond
 	for {
 		var move = game.Movement{}
 		err := conn.ReadJSON(&move)
 		if err != nil {
-			close(keyEventChannel)
 			log.Println("Error reading JSON:", err)
+			playerCounter--
+			s.ControlChan <- "stop"
 			return
 		}
-		fmt.Println(move.Keys)
+		move.PlayerID = playerID
+
 		if move.Type == "keydown" {
 			currentTime := time.Now()
 			if currentTime.Sub(lastKeydownTime) >= debounceDuration {
 				lastKeydownTime = currentTime
-				keyEventChannel <- move
+				s.keyEventChannel <- move
 			}
 		} else {
-			keyEventChannel <- move
+			s.keyEventChannel <- move
 		}
 	}
+}
+
+func (s *Server) AddConn(userID int, conn *websocket.Conn) {
+	s.connsMu.Lock()
+	defer s.connsMu.Unlock()
+	s.Conns[userID] = conn
+}
+
+func (s *Server) RemoveConn(userID int) {
+	s.connsMu.Lock()
+	defer s.connsMu.Unlock()
+	delete(s.Conns, userID)
 }

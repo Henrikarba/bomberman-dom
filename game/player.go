@@ -3,8 +3,9 @@ package game
 import "time"
 
 type Movement struct {
-	Type string   `json:"type"`
-	Keys []string `json:"keys"`
+	PlayerID int      `json:"-"`
+	Type     string   `json:"type"`
+	Keys     []string `json:"keys"`
 }
 
 type Player struct {

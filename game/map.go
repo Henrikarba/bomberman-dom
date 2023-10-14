@@ -11,10 +11,8 @@ const (
 	Wall  = "0"
 	Block = "d"
 	Flame = "f"
-	Bomb  = "b"
 
-	SpeedPowerUp = "S"
-	BombPowerUp  = "B"
+	Bomb = "B"
 )
 
 func CreateMap() [][]string {
@@ -107,7 +105,7 @@ func clearPlayerSpace(board [][]string, x, y int) {
 		for dy := 0; dy <= 2; dy++ {
 			newX, newY := x+dx, y+dy
 			if (dx == 2 && dy == 2) || (dx == 2 && dy == 1) || (dx == 1 && dy == 2) {
-				continue // Skip diagonal and far diagonal spaces
+				continue
 			}
 			if newX < len(board) && newY < len(board[0]) && board[newX][newY] != Wall {
 				board[newX][newY] = Empty
