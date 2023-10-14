@@ -42,7 +42,7 @@
 	position: absolute;
 	width: 64px;
 	height: 64px;
-	background-image: url('./bomb64.png');
+	background-image: url('./assets/bomb64.png');
 	background-position: 0 0;
 }
 

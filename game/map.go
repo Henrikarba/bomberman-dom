@@ -10,9 +10,12 @@ const (
 	Cell  = "c"
 	Wall  = "0"
 	Block = "d"
-)
+	Flame = "f"
+	Bomb  = "b"
 
-const PixelBlockSize = 64
+	SpeedPowerUp = "S"
+	BombPowerUp  = "B"
+)
 
 func CreateMap() [][]string {
 	rows, cols := 13, 19
@@ -27,11 +30,19 @@ func CreateMap() [][]string {
 	// Create walls
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
+			if (i == 0 && j == 0) || (i == 0 && j == cols-1) || (i == rows-1 && j == 0) || (i == rows-1 && j == cols-1) {
+				continue
+			}
 			if i%3 == 0 && j%3 == 0 {
 				board[i][j] = Wall
 			}
 		}
 	}
+	// Clear player spaces
+	clearPlayerSpace(board, 0, 0)
+	clearPlayerSpace(board, 0, cols-1)
+	clearPlayerSpace(board, rows-1, 0)
+	clearPlayerSpace(board, rows-1, cols-1)
 
 	// Random blocks
 	for i := 0; i < rows; i++ {
@@ -63,12 +74,6 @@ func CreateMap() [][]string {
 		}
 	}
 
-	// Set player starting positions
-	board[0][0] = "1"
-	board[0][cols-1] = "2"
-	board[rows-1][0] = "3"
-	board[rows-1][cols-1] = "4"
-
 	// Print the board for demonstration
 	fmt.Println("Map Created:")
 	for _, row := range board {
@@ -81,29 +86,20 @@ func CreateMap() [][]string {
 	return board
 }
 
-func IsCollision(gameboard [][]string, x, y int) bool {
+func IsCollision(gameboard [][]string, x, y int, players []Player, currentPlayerID int) (bool, string) {
 	rows := len(gameboard)
-	if rows == 0 {
-		return false
-	}
 	cols := len(gameboard[0])
 
-	topLeftRow, topLeftCol := y/PixelBlockSize, x/PixelBlockSize
-	topRightRow, topRightCol := y/PixelBlockSize, (x+63)/PixelBlockSize
-	bottomLeftRow, bottomLeftCol := (y+63)/PixelBlockSize, x/PixelBlockSize
-	bottomRightRow, bottomRightCol := (y+63)/PixelBlockSize, (x+63)/PixelBlockSize
-
-	if topLeftRow < 0 || topLeftRow >= rows || topLeftCol < 0 || topLeftCol >= cols ||
-		topRightRow < 0 || topRightRow >= rows || topRightCol < 0 || topRightCol >= cols ||
-		bottomLeftRow < 0 || bottomLeftRow >= rows || bottomLeftCol < 0 || bottomLeftCol >= cols ||
-		bottomRightRow < 0 || bottomRightRow >= rows || bottomRightCol < 0 || bottomRightCol >= cols {
-		return true // Out of bounds
+	if x < 0 || x >= cols || y < 0 || y >= rows {
+		return true, "Wall"
+	}
+	for _, player := range players {
+		if player.ID != currentPlayerID && player.X == x && player.Y == y {
+			return true, "Player"
+		}
 	}
 
-	return gameboard[topLeftRow][topLeftCol] == Wall ||
-		gameboard[topRightRow][topRightCol] == Wall ||
-		gameboard[bottomLeftRow][bottomLeftCol] == Wall ||
-		gameboard[bottomRightRow][bottomRightCol] == Wall
+	return gameboard[y][x] == Wall || gameboard[y][x] == Block || gameboard[y][x] == Bomb, gameboard[y][x]
 }
 
 func clearPlayerSpace(board [][]string, x, y int) {

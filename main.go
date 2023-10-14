@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+const PORT = 5000
+
 func main() {
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
@@ -16,7 +18,8 @@ func main() {
 
 	http.HandleFunc("/ws", server.WebsocketHandler)
 
-	err := http.ListenAndServe(fmt.Sprintf(":%v", 5000), nil)
+	log.Printf("Bomberman running on http://localhost:%d", PORT)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", PORT), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

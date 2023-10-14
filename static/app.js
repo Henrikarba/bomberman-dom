@@ -3,48 +3,64 @@ import Player from './player.js'
 
 // App
 const app = mini.createApp('app')
-export const socket = new WebSocket('ws://localhost:5000/ws')
-
-// Views
-let currentView = 1
-const drawStartMenu = null
-const views = [drawStartMenu, drawGameboard]
+const socket = new WebSocket('ws://localhost:5000/ws')
 
 // Game
 const mapState = mini.createState([])
+const playerState = mini.createState([])
+const blockUpdates = mini.createState([])
+let gameboard = undefined
+const playerElements = {}
 
-// Players
-const player = Player(1)
-const sprite = player.getSprite()
+function gameloop(updateType) {
+	if (!gameboard) gameboard = drawGameboard(mapState.value)
 
-socket.onmessage = (e) => {
-	const data = JSON.parse(e.data)
-	console.log(data)
-	if (Array.isArray(data)) {
-		mapState.value = data
-	} else if (data?.type && data.type == 'player_position_update') {
-		player.position.value.x = data.players[0].x
-		player.position.value.y = data.players[0].y
-		player.updateSprite(data.players[0].direction)
-		requestAnimationFrame(gameloop)
+	switch (updateType) {
+		case 'new_game':
+			updatePlayerPosition(gameboard)
+			mini.render(app, gameboard)
+			break
+		case 'player_position_update':
+			updatePlayerPosition(gameboard)
+			break
+		case 'map_state_update':
+			blockUpdates.value.forEach((update) => {
+				if (update.block == 'B') {
+					const bomb = createBombElement(update.x, update.y)
+					gameboard.appendChild(bomb)
+					console.log(bomb)
+				}
+			})
+			break
+	}
+
+	function updatePlayerPosition(gameboard) {
+		playerState.value.forEach((player) => {
+			let playerElement = playerElements[player.id]
+			if (!playerElement) {
+				playerElement = Player(player)
+				playerElements[player.id] = playerElement
+				gameboard.appendChild(playerElement.getSprite())
+			}
+
+			if (playerElement) {
+				const sprite = playerElement.getSprite()
+				playerElement.updateSprite(player.direction)
+				sprite.style.left = player.x * 64 + 'px'
+				sprite.style.top = player.y * 64 + 'px'
+			}
+		})
+	}
+
+	function createBombElement(x, y) {
+		return mini.div({ class: 'bomb', style: `left: ${x * 64}px; top: ${y * 64}px` })
 	}
 }
 
-mapState.subscribe(() => {
-	const updatedBoard = drawGameboard()
-	mini.render(app, updatedBoard)
-})
-
-requestAnimationFrame(gameloop)
-function gameloop() {
-	sprite.style.left = player.position.value.x + 'px'
-	sprite.style.top = player.position.value.y + 'px'
-}
-
-function drawGameboard() {
+function drawGameboard(mapdata) {
 	return mini.div(
 		{ id: 'game' },
-		...mapState.value.map((row, rowIndex) => {
+		...mapdata.map((row, rowIndex) => {
 			return mini.div(
 				{ class: 'row flex' },
 				...row.map((cell, cellIndex) => {
@@ -54,12 +70,65 @@ function drawGameboard() {
 						cellClass = 'wall'
 					} else if (cell === 'd') {
 						cellClass = 'destroyable'
+					} else if (cell === 'b') {
+						cellClass = 'bomb'
 					}
 
 					return mini.div({ class: cellClass, 'data-row': rowIndex, 'data-cell': cellIndex })
 				})
 			)
-		}),
-		sprite
+		})
 	)
 }
+
+// Event Listeners
+socket.onmessage = (e) => {
+	const data = JSON.parse(e.data)
+	switch (data.type) {
+		case 'new_game':
+			mapState.value = data.map
+			playerState.value = data.players
+			document.addEventListener('keydown', keyDownHandler)
+			document.addEventListener('keyup', keyUpHandler)
+			break
+		case 'game_over':
+			document.removeEventListener('keydown', keyDownHandler)
+			document.removeEventListener('keyup', keyUpHandler)
+			break
+		case 'player_position_update':
+			playerState.value = data.players
+			break
+		case 'map_state_update':
+			blockUpdates.value = data.block_updates
+			break
+	}
+
+	gameloop(data.type)
+}
+
+let activeKeys = new Set()
+
+function keyDownHandler(e) {
+	const keyDown = e.key.toLowerCase()
+	if (!'wsadenter'.includes(keyDown)) return
+	activeKeys.add(keyDown)
+}
+
+function keyUpHandler(e) {
+	const keyUp = e.key.toLowerCase()
+	if (!'wsadenter'.includes(keyUp)) return
+	activeKeys.delete(keyUp)
+}
+
+let sending = true
+setInterval(() => {
+	if (activeKeys.size > 0) {
+		socket.send(JSON.stringify({ type: 'keydown', keys: Array.from(activeKeys) }))
+		sending = true
+	} else {
+		if (sending) {
+			socket.send(JSON.stringify({ type: 'keyup', keys: [] }))
+			sending = false
+		}
+	}
+}, 50)

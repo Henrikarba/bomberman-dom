@@ -2,10 +2,10 @@ package server
 
 import (
 	"bomberman-dom/game"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -16,86 +16,106 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  256,
 }
 
+var playerCounter = 1
+var playerCounterMutex = &sync.Mutex{}
+
+func getNextPlayerID() int {
+	playerCounterMutex.Lock()
+	defer playerCounterMutex.Unlock()
+	id := playerCounter
+	playerCounter++
+	return id
+}
+
 func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-
-	gameboard := game.CreateMap()
-	jsonData, err := json.Marshal(gameboard)
-	if err := conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-		log.Println(err)
+	playerID := getNextPlayerID()
+	if playerID > 4 {
+		log.Println("Maximum players reached")
 		return
 	}
 
-	// playerUpdates := make(chan Player)
+	gameboard := game.CreateMap()
+	newPlayer := game.NewPlayer(1, gameboard)
+	newPlayer2 := game.NewPlayer(2, gameboard)
+	newPlayer3 := game.NewPlayer(3, gameboard)
+	newPlayer4 := game.NewPlayer(4, gameboard)
 	players := []game.Player{}
-	players = append(players, game.Player{
-		ID:    1,
-		X:     0, // Initialize to some default or calculated value
-		Y:     0, // Initialize to some default or calculated value
-		Speed: 1,
-	})
-	var lastDirection string
-	var lastMoveTime time.Time
-	// speed := players[0].Speed
-	moveCooldown := 200 * time.Millisecond // 200 milliseconds cooldown
+	players = append(players, *newPlayer, *newPlayer2, *newPlayer3, *newPlayer4)
+
+	keysPressed := make(map[int]map[string]bool)
+	keysPressed[playerID] = make(map[string]bool)
+	keyEventChannel := make(chan game.Movement, 100) // Buffered channel
+	var blockUpdates []game.BlockUpdate
+
 	go func() {
 		ticker := time.NewTicker(16 * time.Millisecond)
-		stepSize := 64
-
 		for range ticker.C {
-			if time.Since(lastMoveTime) < moveCooldown {
-				continue
-			}
-			for i, player := range players {
-				if player.ID == 1 {
-					fmt.Println("here")
-					newX, newY := player.X, player.Y
-					switch lastDirection {
-					case "up":
-						newY -= stepSize
-					case "down":
-						newY += stepSize
-					case "left":
-						newX -= stepSize
-					case "right":
-						newX += stepSize
-					}
-					fmt.Println(newX)
-					if !game.IsCollision(gameboard, newX, newY) {
+			for len(keyEventChannel) > 0 {
+				move := <-keyEventChannel
+				for k := range keysPressed[playerID] {
+					keysPressed[playerID][k] = false
 
-						players[i].X = newX
-						players[i].Y = newY
-						players[i].Direction = lastDirection
-						lastMoveTime = time.Now()
-					}
-					fmt.Println(players[i].X)
+				}
+				for _, key := range move.Keys {
+					keysPressed[playerID][key] = true
+					game.HandleKeyPress(players, &gameboard, keysPressed, &blockUpdates)
 				}
 			}
 
-			positionUpdate := game.PositionUpdate{
-				Type: "player_position_update",
-				Data: players,
+			gameState := game.GameState{
+				Players: players,
 			}
-			updateJSON, _ := json.Marshal(positionUpdate)
-			conn.WriteMessage(websocket.TextMessage, updateJSON)
 
+			if len(blockUpdates) > 0 {
+				gameState.Type = "map_state_update"
+				gameState.BlockUpdate = blockUpdates
+			} else {
+				gameState.Type = "player_position_update"
+			}
+
+			// Send the game state
+			if err := conn.WriteJSON(gameState); err != nil {
+				log.Println("Write JSON error:", err)
+			}
+
+			// Clear the block updates
+			blockUpdates = []game.BlockUpdate{}
 		}
 	}()
-	defer conn.Close()
 
+	// Send initial game state
+	lobby := game.GameState{
+		Type:    "new_game",
+		Map:     gameboard,
+		Players: players,
+	}
+	conn.WriteJSON(lobby)
+
+	// Main loop for listening to key events
+	var lastKeydownTime time.Time
+	debounceDuration := 50 * time.Millisecond
 	for {
-		var move game.Movement
+		var move = game.Movement{}
 		err := conn.ReadJSON(&move)
 		if err != nil {
+			close(keyEventChannel)
+			log.Println("Error reading JSON:", err)
 			return
 		}
-		fmt.Println(move)
+		fmt.Println(move.Keys)
 		if move.Type == "keydown" {
-			lastDirection = move.Movement.Direction
+			currentTime := time.Now()
+			if currentTime.Sub(lastKeydownTime) >= debounceDuration {
+				lastKeydownTime = currentTime
+				keyEventChannel <- move
+			}
+		} else {
+			keyEventChannel <- move
 		}
 	}
 }
