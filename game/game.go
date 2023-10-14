@@ -25,7 +25,7 @@ func HandleKeyPress(s *GameState) {
 		if keys, ok := s.KeysPressed[player.ID]; ok {
 			s.Type = "game_state_update"
 			if keys["enter"] && player.AvailableBombs > 0 {
-				s.Map[player.Y][player.X] = "B"
+				(*s.Map)[player.Y][player.X] = "B"
 				*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
 			}
 
