@@ -96,8 +96,8 @@ func IsCollision(gameboard [][]string, x, y int, players []Player, currentPlayer
 			return true, "Player"
 		}
 	}
-	// gameboard[y][x] == Wall || gameboard[y][x] == Block || gameboard[y][x] == Bomb, gameboard[y][x]
-	return false, ""
+	return gameboard[y][x] == Wall || gameboard[y][x] == Block || gameboard[y][x] == Bomb, gameboard[y][x]
+	// return false, ""
 }
 
 func clearPlayerSpace(board [][]string, x, y int) {
