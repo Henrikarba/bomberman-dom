@@ -24,12 +24,15 @@ func HandleKeyPress(s *GameState) {
 	for i, player := range *s.Players {
 		if keys, ok := s.KeysPressed[player.ID]; ok {
 			s.Type = "game_state_update"
+
+			// Bomb plant
 			if keys["enter"] && player.AvailableBombs > 0 {
 				(*s.Map)[player.Y][player.X] = "B"
 				*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
 			}
 
-			if time.Since(player.LastMoveTime) >= time.Second/time.Duration(player.Speed*2) {
+			// Movement
+			if time.Since(player.LastMoveTime) >= time.Second*time.Duration(100)/time.Duration(player.Speed) {
 				newX, newY := player.X, player.Y
 				if keys["w"] {
 					newY -= 1
@@ -57,6 +60,7 @@ func HandleKeyPress(s *GameState) {
 				} else {
 					(*s.Players)[i].X = newX
 					(*s.Players)[i].Y = newY
+					(*s.Players)[i].LastMoveTime = time.Now()
 				}
 			}
 		}

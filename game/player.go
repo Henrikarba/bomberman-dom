@@ -24,7 +24,7 @@ type Player struct {
 func NewPlayer(id int, gameboard [][]string) *Player {
 	player := &Player{
 		ID:             id,
-		Speed:          2,
+		Speed:          300,
 		AvailableBombs: 1,
 	}
 	rows := len(gameboard)
