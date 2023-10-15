@@ -69,6 +69,14 @@
   background-position: 0 0;
 }
 
+.power {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/powerup.png");
+  background-position: 0 0;
+}
+
 #player1 {
   position: absolute;
   width: 64px;

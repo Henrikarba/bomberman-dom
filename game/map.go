@@ -7,7 +7,7 @@ import (
 
 const (
 	Empty     = "e"
-	Cell      = "c"
+	Power     = "p"
 	Wall      = "0"
 	Block     = "d"
 	Flame     = "f"
@@ -97,7 +97,7 @@ func IsCollision(gameboard [][]string, x, y int, players []Player, currentPlayer
 			return true, "Player"
 		}
 	}
-	return gameboard[y][x] == Wall || gameboard[y][x] == Block || gameboard[y][x] == Bomb, gameboard[y][x]
+	return gameboard[y][x] == Wall || gameboard[y][x] == Block || gameboard[y][x] == Bomb || gameboard[y][x] == Flame || gameboard[y][x] == Power, gameboard[y][x]
 	// return false, ""
 }
 
