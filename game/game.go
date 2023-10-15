@@ -6,7 +6,7 @@ import (
 )
 
 type GameState struct {
-	Type string `json:"type"`
+	Type string `json:"type,omitempty"`
 
 	Map         *[][]string             `json:"map,omitempty"`
 	BlockUpdate *[]BlockUpdate          `json:"block_updates,omitempty"`
@@ -20,15 +20,15 @@ type BlockUpdate struct {
 	Block string `json:"block"`
 }
 
-func HandleKeyPress(s *GameState) {
+func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 	for i, player := range *s.Players {
 		if keys, ok := s.KeysPressed[player.ID]; ok {
-			s.Type = "game_state_update"
 
 			// Bomb plant
 			if keys["enter"] && player.AvailableBombs > 0 {
 				(*s.Map)[player.Y][player.X] = "B"
 				*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
+				updateChannel <- "map_state_update"
 			}
 
 			// Movement
@@ -61,8 +61,10 @@ func HandleKeyPress(s *GameState) {
 					(*s.Players)[i].X = newX
 					(*s.Players)[i].Y = newY
 					(*s.Players)[i].LastMoveTime = time.Now()
+					updateChannel <- "player_state_update"
 				}
 			}
 		}
 	}
+
 }

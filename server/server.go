@@ -19,6 +19,8 @@ type Server struct {
 	keyEventChannel chan game.Movement
 	ControlChan     chan string
 	CancelFunc      context.CancelFunc
+
+	updateChannel chan string
 }
 
 func New() *Server {
@@ -27,6 +29,7 @@ func New() *Server {
 		Conns:           make(map[int]*websocket.Conn),
 		keyEventChannel: make(chan game.Movement, 100),
 		ControlChan:     make(chan string),
+		updateChannel:   make(chan string, 100),
 	}
 }
 
@@ -45,6 +48,7 @@ func (s *Server) NewGame() {
 	s.Game.Map = &gameboard
 	s.Game.Type = "new_game"
 	s.Game.KeysPressed = make(map[int]map[string]bool)
+	s.updateChannel <- "new_game"
 }
 
 func (s *Server) ListenForKeyPress(ctx context.Context) {
@@ -56,7 +60,7 @@ func (s *Server) ListenForKeyPress(ctx context.Context) {
 	go func() {
 		ticker := time.NewTicker(16 * time.Millisecond)
 		defer ticker.Stop()
-
+		data := game.GameState{}
 		for {
 			select {
 			case <-ctx.Done():
@@ -75,14 +79,31 @@ func (s *Server) ListenForKeyPress(ctx context.Context) {
 						s.Game.KeysPressed[playerID][key] = true
 					}
 
-					game.HandleKeyPress(s.Game)
+					game.HandleKeyPress(s.Game, s.updateChannel)
 				}
-
+				select {
+				case update := <-s.updateChannel:
+					data.Type = update
+					if update == "map_state_update" {
+						data.BlockUpdate = s.Game.BlockUpdate
+					} else if update == "new_game" {
+						data = *s.Game
+					} else if update == "player_state_update" {
+						data.Players = s.Game.Players
+					}
+				default:
+					data.Type = ""
+					data.BlockUpdate = nil
+					data.Players = nil
+					data.Map = nil
+				}
 				// Send updated game state to all players
 				s.connsMu.Lock()
-				for _, conn := range s.Conns {
-					if err := conn.WriteJSON(s.Game); err != nil {
-						log.Println("Write JSON error:", err)
+				if data.Type != "" { // Only send if there's an update
+					for _, conn := range s.Conns {
+						if err := conn.WriteJSON(data); err != nil {
+							log.Println("Write JSON error:", err)
+						}
 					}
 				}
 				s.connsMu.Unlock()

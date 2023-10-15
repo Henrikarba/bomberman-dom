@@ -21,8 +21,11 @@ function gameloop(updateType) {
 			mini.render(app, gameboard)
 			break
 
-		case 'game_state_update':
+		case 'player_state_update':
 			updatePlayerPosition(gameboard)
+
+			break
+		case 'map_state_update':
 			blockUpdates.value.forEach((update) => {
 				if (update.block == 'B') {
 					const bomb = createBombElement(update.x, update.y)
@@ -30,7 +33,6 @@ function gameloop(updateType) {
 					console.log(bomb)
 				}
 			})
-			break
 	}
 
 	function updatePlayerPosition(gameboard) {
@@ -95,8 +97,10 @@ socket.onmessage = (e) => {
 			document.removeEventListener('keydown', keyDownHandler)
 			document.removeEventListener('keyup', keyUpHandler)
 			break
-		case 'game_state_update':
+		case 'player_state_update':
 			playerState.value = data.players
+			break
+		case 'map_state_update':
 			blockUpdates.value = data.block_updates
 			break
 	}
