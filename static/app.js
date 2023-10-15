@@ -23,7 +23,6 @@ function gameloop(updateType) {
 
 		case 'player_state_update':
 			updatePlayerPosition(gameboard)
-
 			break
 		case 'map_state_update':
 			blockUpdates.value.forEach((update) => {
@@ -33,6 +32,7 @@ function gameloop(updateType) {
 					console.log(bomb)
 				}
 			})
+			break
 	}
 
 	function updatePlayerPosition(gameboard) {
