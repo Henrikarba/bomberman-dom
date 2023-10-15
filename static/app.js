@@ -32,9 +32,9 @@ function gameloop(updateType) {
 					console.log(bomb)
 				}
 				if (update.block == 'ex') {
-					const bombToRemove = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`);
-					if (bombToRemove) {
-						bombToRemove.remove();
+					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`);
+					if (RemoveBomb) {
+						RemoveBomb.remove();
 					}
 					const explosion = createExplosionElement(update.x, update.y)
 					gameboard.appendChild(explosion)
@@ -50,6 +50,27 @@ function gameloop(updateType) {
 					if (changeCell) {
 						changeCell.className = "cell"
 					}
+					const RemovePower = document.querySelector(`.power[x="${update.x}"][y="${update.y}"]`);
+					if (RemovePower) {
+						RemovePower.remove();
+					}
+					const RemoveFlame = document.querySelector(`.flame[x="${update.x}"][y="${update.y}"]`);
+					if (RemoveFlame) {
+						RemoveFlame.remove();
+					}
+					const RemoveExplosion = document.querySelector(`.explosion[x="${update.x}"][y="${update.y}"]`);
+					if (RemoveExplosion) {
+						RemoveExplosion.remove();
+					}
+				}
+				if (update.block == 'p') {
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
+					if (changeCell) {
+						changeCell.className = "cell"
+					}
+					const power = createPowerElement(update.x, update.y)
+					gameboard.appendChild(power)
+					console.log(power)
 				}
 			})
 			break
@@ -70,6 +91,12 @@ function gameloop(updateType) {
 				sprite.style.left = player.x * 64 + 'px'
 				sprite.style.top = player.y * 64 + 'px'
 			}
+		})
+	}
+
+	function createPowerElement(x, y) {
+		return mini.div({
+			class: 'power', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
 		})
 	}
 
