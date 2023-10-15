@@ -25,21 +25,25 @@ func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 		if keys, ok := s.KeysPressed[player.ID]; ok {
 
 			// Bomb plant
-			if keys["enter"] && player.AvailableBombs > 0 {
+			if keys[" "] && player.AvailableBombs > 0 {
 				if s.BlockUpdate == nil {
 					s.BlockUpdate = &[]BlockUpdate{}
 					(*s.Map)[player.Y][player.X] = "B"
 					*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
 					updateChannel <- "map_state_update"
 
+					(*s.Players)[i].AvailableBombs--
+
 					// Explosion
 					bombX, bombY := player.X, player.Y
 					time.AfterFunc(3*time.Second, func() {
 						if s.BlockUpdate == nil {
 							s.BlockUpdate = &[]BlockUpdate{}
-							(*s.Map)[player.Y][player.X] = "F"
-							*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: bombX, Y: bombY, Block: "F"})
+							(*s.Map)[player.Y][player.X] = "f"
+							*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: bombX, Y: bombY, Block: "f"})
 							updateChannel <- "map_state_update"
+
+							(*s.Players)[i].AvailableBombs++
 						}
 					})
 				}

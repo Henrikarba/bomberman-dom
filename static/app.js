@@ -31,6 +31,15 @@ function gameloop(updateType) {
 					gameboard.appendChild(bomb)
 					console.log(bomb)
 				}
+				if (update.block == 'f') {
+					const bombToRemove = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`);
+					if (bombToRemove) {
+						bombToRemove.remove();
+					}
+					const explosion = createExplosionElement(update.x, update.y)
+					gameboard.appendChild(explosion)
+					console.log(explosion)
+				}
 			})
 			break
 	}
@@ -54,7 +63,15 @@ function gameloop(updateType) {
 	}
 
 	function createBombElement(x, y) {
-		return mini.div({ class: 'bomb', style: `left: ${x * 64}px; top: ${y * 64}px` })
+		return mini.div({
+			class: 'bomb', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+		})
+	}
+
+	function createExplosionElement(x, y) {
+		return mini.div({
+			class: 'explosion', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+		})
 	}
 }
 
@@ -73,6 +90,8 @@ function drawGameboard(mapdata) {
 						cellClass = 'destroyable'
 					} else if (cell === 'b') {
 						cellClass = 'bomb'
+					} else if (cell === 'f') {
+						cellClass = 'flame'
 					}
 
 					return mini.div({ class: cellClass, 'data-row': rowIndex, 'data-cell': cellIndex })
@@ -112,13 +131,13 @@ let activeKeys = new Set()
 
 function keyDownHandler(e) {
 	const keyDown = e.key.toLowerCase()
-	if (!'wsadenter'.includes(keyDown)) return
+	if (!'wsad '.includes(keyDown)) return
 	activeKeys.add(keyDown)
 }
 
 function keyUpHandler(e) {
 	const keyUp = e.key.toLowerCase()
-	if (!'wsadenter'.includes(keyUp)) return
+	if (!'wsad '.includes(keyUp)) return
 	activeKeys.delete(keyUp)
 }
 
