@@ -46,7 +46,7 @@ function gameloop(updateType) {
 					console.log(flame)
 				}
 				if (update.block == 'e') {
-					const changeCell = document.querySelector(`.destroyable[data-row="${update.x}"][data-cell="${update.y}"]`);
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
 					if (changeCell) {
 						changeCell.className = "cell"
 					}
