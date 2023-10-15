@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"time"
+	log "bomberman-dom/server/logger"
 )
 
 type GameState struct {
@@ -33,7 +34,7 @@ func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 					updateChannel <- "map_state_update"
 
 					(*s.Players)[i].AvailableBombs--
-
+					log.Info(player.X, player.Y, "start", player.ID)
 					// Explosion
 					bombX, bombY := player.X, player.Y
 					FlameBlocks := func(x, y int, directionX, directionY int) {
@@ -77,7 +78,9 @@ func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 							FlameBlocks(bombX, bombY, 0, -1) // Down
 							FlameBlocks(bombX, bombY, 1, 0)  // Right
 							FlameBlocks(bombX, bombY, -1, 0) // Left
+							
 						}
+						log.Info(player.X, player.Y, "end", player.ID)
 					})
 				}
 			}
