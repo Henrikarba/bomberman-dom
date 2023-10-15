@@ -36,14 +36,42 @@ func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 
 					// Explosion
 					bombX, bombY := player.X, player.Y
+					FlameBlocks := func(x, y int, directionX, directionY int) {
+						for i := 1; i <= player.FireDistance; i++ {
+							newY, newX := x+(i*directionX), y+(i*directionY)
+							if newX >= 0 && newX < len(*s.Map) && newY >= 0 && newY < len((*s.Map)[newX]) {
+								if (*s.Map)[newX][newY] == "d" {
+									// If it's a "d" block, update it to "e" and exit the loop
+									(*s.Map)[newX][newY] = "e"
+									*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: newX, Y: newY, Block: "e"})
+									updateChannel <- "map_state_update"
+									break
+								} else if (*s.Map)[newX][newY] != "ex" && (*s.Map)[newX][newY] == "e" {
+									// If it's not "ex", update it to "f"d
+									(*s.Map)[newY][newX] = "f"
+									*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: newY, Y: newX, Block: "f"})
+									updateChannel <- "map_state_update"
+								} else {
+									// If out of bounds, exit the loop
+									break
+								}
+							}
+						}
+					}
+
 					time.AfterFunc(3*time.Second, func() {
 						if s.BlockUpdate == nil {
 							s.BlockUpdate = &[]BlockUpdate{}
-							(*s.Map)[player.Y][player.X] = "f"
-							*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: bombX, Y: bombY, Block: "f"})
+							(*s.Map)[player.Y][player.X] = "ex"
+							*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: bombX, Y: bombY, Block: "ex"})
 							updateChannel <- "map_state_update"
 
 							(*s.Players)[i].AvailableBombs++
+
+							FlameBlocks(bombX, bombY, 0, 1)  // Up
+							FlameBlocks(bombX, bombY, 0, -1) // Down
+							FlameBlocks(bombX, bombY, 1, 0)  // Right
+							FlameBlocks(bombX, bombY, -1, 0) // Left
 						}
 					})
 				}

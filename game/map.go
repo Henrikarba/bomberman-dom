@@ -6,11 +6,12 @@ import (
 )
 
 const (
-	Empty = "e"
-	Cell  = "c"
-	Wall  = "0"
-	Block = "d"
-	Flame = "f"
+	Empty     = "e"
+	Cell      = "c"
+	Wall      = "0"
+	Block     = "d"
+	Flame     = "f"
+	Explosion = "ex"
 
 	Bomb = "B"
 )

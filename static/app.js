@@ -31,7 +31,7 @@ function gameloop(updateType) {
 					gameboard.appendChild(bomb)
 					console.log(bomb)
 				}
-				if (update.block == 'f') {
+				if (update.block == 'ex') {
 					const bombToRemove = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`);
 					if (bombToRemove) {
 						bombToRemove.remove();
@@ -39,6 +39,17 @@ function gameloop(updateType) {
 					const explosion = createExplosionElement(update.x, update.y)
 					gameboard.appendChild(explosion)
 					console.log(explosion)
+				}
+				if (update.block == 'f') {
+					const flame = createFlameElement(update.x, update.y)
+					gameboard.appendChild(flame)
+					console.log(flame)
+				}
+				if (update.block == 'e') {
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.x}"][data-cell="${update.y}"]`);
+					if (changeCell) {
+						changeCell.className = "cell"
+					}
 				}
 			})
 			break
@@ -73,6 +84,12 @@ function gameloop(updateType) {
 			class: 'explosion', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
 		})
 	}
+
+	function createFlameElement(x, y) {
+		return mini.div({
+			class: 'flame', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+		})
+	}
 }
 
 function drawGameboard(mapdata) {
@@ -90,8 +107,6 @@ function drawGameboard(mapdata) {
 						cellClass = 'destroyable'
 					} else if (cell === 'b') {
 						cellClass = 'bomb'
-					} else if (cell === 'f') {
-						cellClass = 'flame'
 					}
 
 					return mini.div({ class: cellClass, 'data-row': rowIndex, 'data-cell': cellIndex })

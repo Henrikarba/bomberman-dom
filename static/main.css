@@ -38,6 +38,13 @@
   border: 1px solid black;
 }
 
+.destroyable {
+  width: 64px;
+  height: 64px;
+  background-color: orange;
+  border: 1px solid rgb(0, 255, 13);
+}
+
 .bomb {
   position: absolute;
   width: 64px;
@@ -46,19 +53,19 @@
   background-position: 0 0;
 }
 
-.destroyable {
-  width: 64px;
-  height: 64px;
-  background-color: orange;
-  border: 1px solid rgb(0, 255, 13);
-}
-
 .explosion {
   position: absolute;
   width: 32px;
   height: 32px;
-  scale: 2;
   background-image: url("./assets/explosion.png");
+  background-position: 0 0;
+}
+
+.flame {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/flame.png");
   background-position: 0 0;
 }
 

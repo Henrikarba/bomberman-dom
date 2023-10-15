@@ -18,6 +18,7 @@ type Player struct {
 	LastMoveTime   time.Time `json:"-"`
 	Speed          int       `json:"-"`
 	AvailableBombs int       `json:"bombs,omitempty"`
+	FireDistance   int       `json:"-"`
 	Lives          int       `json:"lives,omitempty"`
 	// PowerUps       []PowerUp
 }
@@ -27,6 +28,7 @@ func NewPlayer(id int, gameboard [][]string) *Player {
 		ID:             id,
 		Speed:          300,
 		AvailableBombs: 1,
+		FireDistance:   2,
 	}
 	rows := len(gameboard)
 	cols := len(gameboard[0])
