@@ -31,6 +31,17 @@ func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 					(*s.Map)[player.Y][player.X] = "B"
 					*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: player.X, Y: player.Y, Block: "B"})
 					updateChannel <- "map_state_update"
+
+					// Explosion
+					bombX, bombY := player.X, player.Y
+					time.AfterFunc(3*time.Second, func() {
+						if s.BlockUpdate == nil {
+							s.BlockUpdate = &[]BlockUpdate{}
+							(*s.Map)[player.Y][player.X] = "F"
+							*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: bombX, Y: bombY, Block: "F"})
+							updateChannel <- "map_state_update"
+						}
+					})
 				}
 			}
 
