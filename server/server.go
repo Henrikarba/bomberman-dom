@@ -107,6 +107,7 @@ func (s *Server) ListenForKeyPress(ctx context.Context) {
 					}
 				}
 				s.connsMu.Unlock()
+				s.Game.BlockUpdate = nil
 			}
 		}
 	}()
