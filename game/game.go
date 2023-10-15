@@ -52,6 +52,10 @@ func HandleKeyPress(s *GameState, updateChannel chan<- string) {
 									(*s.Map)[newY][newX] = "f"
 									*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: newX, Y: newY, Block: "f"})
 									updateChannel <- "map_state_update"
+								} else if (*s.Map)[newY][newX] == "f" {
+									(*s.Map)[newY][newX] = "f"
+									*s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: newX, Y: newY, Block: "f"})
+									updateChannel <- "map_state_update"
 								} else {
 									// If out of bounds, exit the loop
 									break
