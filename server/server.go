@@ -3,6 +3,7 @@ package server
 import (
 	"bomberman-dom/game"
 	"context"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -11,7 +12,8 @@ import (
 )
 
 type Server struct {
-	Game *game.GameState
+	gameMu sync.Mutex
+	Game   game.GameState
 
 	connsMu sync.RWMutex
 	Conns   map[int]*websocket.Conn
@@ -20,16 +22,24 @@ type Server struct {
 	ControlChan     chan string
 	CancelFunc      context.CancelFunc
 
-	updateChannel chan string
+	gameStateChannel    chan game.GameState
+	mapUpdateChannel    chan []game.BlockUpdate
+	playerUpdateChannel chan []game.Player
 }
 
 func New() *Server {
 	return &Server{
-		Game:            &game.GameState{},
+		gameMu: sync.Mutex{},
+		Game:   game.GameState{},
+
+		connsMu:         sync.RWMutex{},
 		Conns:           make(map[int]*websocket.Conn),
 		keyEventChannel: make(chan game.Movement, 100),
 		ControlChan:     make(chan string),
-		updateChannel:   make(chan string, 100),
+
+		gameStateChannel:    make(chan game.GameState, 100),
+		mapUpdateChannel:    make(chan []game.BlockUpdate, 100),
+		playerUpdateChannel: make(chan []game.Player, 100),
 	}
 }
 
@@ -43,12 +53,13 @@ func (s *Server) NewGame() {
 		players = append(players, *newPlayer)
 	}
 
-	s.Game.BlockUpdate = &blockUpdates
-	s.Game.Players = &players
-	s.Game.Map = &gameboard
+	s.Game.BlockUpdate = blockUpdates
+	s.Game.Players = players
+	s.Game.Map = gameboard
 	s.Game.Type = "new_game"
 	s.Game.KeysPressed = make(map[int]map[string]bool)
-	s.updateChannel <- "new_game"
+	s.gameStateChannel <- s.Game
+	go s.UpdateGameState()
 }
 
 func (s *Server) ListenForKeyPress(ctx context.Context) {
@@ -57,58 +68,117 @@ func (s *Server) ListenForKeyPress(ctx context.Context) {
 		s.Game.KeysPressed[id] = make(map[string]bool)
 	}
 
-	go func() {
-		ticker := time.NewTicker(16 * time.Millisecond)
-		defer ticker.Stop()
-		data := game.GameState{}
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				// Process all pending key events
-				for len(s.keyEventChannel) > 0 {
-					move := <-s.keyEventChannel
-					playerID := move.PlayerID
+	for {
+		select {
+		case <-ctx.Done():
+			// Exit the loop if the context is cancelled
+			return
+		case move := <-s.keyEventChannel:
+			// Process the key event
+			playerID := move.PlayerID
+			for k := range s.Game.KeysPressed[playerID] {
+				s.Game.KeysPressed[playerID][k] = false
+			}
+			for _, key := range move.Keys {
+				s.Game.KeysPressed[playerID][key] = true
+			}
+			s.HandleKeyPress()
+		}
+	}
+}
 
-					for k := range s.Game.KeysPressed[playerID] {
-						s.Game.KeysPressed[playerID][k] = false
-					}
+func (s *Server) HandleKeyPress() {
 
-					for _, key := range move.Keys {
-						s.Game.KeysPressed[playerID][key] = true
-					}
+	for i, player := range s.Game.Players {
+		if keys, ok := s.Game.KeysPressed[player.ID]; ok {
+			// Bomb plant
+			if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
+				// (s.Game.Players)[i].AvailableBombs--
+				bombX := (s.Game.Players)[i].X
+				bombY := (s.Game.Players)[i].Y
+				fireDistance := (s.Game.Players)[i].FireDistance
+				go game.PlantBomb(bombX, bombY, fireDistance, &s.Game, s.mapUpdateChannel)
+			}
 
-					game.HandleKeyPress(s.Game, s.updateChannel)
+			// Movement
+			if time.Since(player.LastMoveTime) >= time.Second*time.Duration(100)/time.Duration(player.Speed) {
+				MovePlayer := func(newX, newY int) {
+					(s.Game.Players)[i].X = newX
+					(s.Game.Players)[i].Y = newY
+					(s.Game.Players)[i].LastMoveTime = time.Now()
+					s.playerUpdateChannel <- s.Game.Players
 				}
-				select {
-				case update := <-s.updateChannel:
-					data.Type = update
-					if update == "map_state_update" {
-						data.BlockUpdate = s.Game.BlockUpdate
-					} else if update == "new_game" {
-						data = *s.Game
-					} else if update == "player_state_update" {
-						data.Players = s.Game.Players
+				newX, newY := player.X, player.Y
+				if keys["w"] {
+					newY -= 1
+					(s.Game.Players)[i].Direction = "up"
+				} else if keys["s"] {
+					newY += 1
+					(s.Game.Players)[i].Direction = "down"
+				} else if keys["a"] {
+					newX -= 1
+					(s.Game.Players)[i].Direction = "left"
+				} else if keys["d"] {
+					newX += 1
+					(s.Game.Players)[i].Direction = "right"
+				}
+
+				collision, typeof := game.IsCollision(s.Game.Map, newX, newY, s.Game.Players, player.ID)
+				if collision {
+					if typeof == "Player" {
+						fmt.Println("Hit another player")
+					} else if typeof == "Wall" || typeof == "Bomb" {
+						fmt.Println("Hit a wall or a bomb")
+					} else if typeof == "f" {
+						fmt.Println("Hit flame, -1 life")
+						(s.Game.Players)[i].Lives--
+						MovePlayer(newX, newY)
+					} else if typeof == "ex" {
+						fmt.Println("Hit explosion, -1 life")
+						(s.Game.Players)[i].Lives--
+						MovePlayer(newX, newY)
+					} else if typeof == "p" {
+						// fmt.Println("+ 1 bomb")
+						// s.BlockUpdate = &[]BlockUpdate{}
+						// (*s.Map)[newY][newX] = "e"
+						// *s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: newX, Y: newY, Block: "e"})
+						// updateChannel <- "map_state_update"
+						// (*s.Players)[i].AvailableBombs++
+						// MovePlayer(newX, newY)
 					}
-				default:
-					data.Type = ""
-					data.BlockUpdate = nil
-					data.Players = nil
-					data.Map = nil
+				} else {
+					MovePlayer(newX, newY)
 				}
-				// Send updated game state to all players
-				s.connsMu.Lock()
-				if data.Type != "" { // Only send if there's an update
-					for _, conn := range s.Conns {
-						if err := conn.WriteJSON(data); err != nil {
-							log.Println("Write JSON error:", err)
-						}
-					}
-				}
-				s.connsMu.Unlock()
-				s.Game.BlockUpdate = nil
 			}
 		}
-	}()
+	}
+}
+
+func (s *Server) UpdateGameState() {
+	for {
+		data := s.Game
+		select {
+		case gameStateUpdate := <-s.gameStateChannel:
+			data = gameStateUpdate
+			data.Type = "new_game"
+		case mapUpdate := <-s.mapUpdateChannel:
+			data.Type = "map_state_update"
+			data.BlockUpdate = mapUpdate
+		case playerUpdate := <-s.playerUpdateChannel:
+			// Handle player updates
+			data.Type = "player_state_update"
+			data.Players = playerUpdate
+
+		}
+		// Send updated game state to all players
+		s.connsMu.Lock()
+		for _, conn := range s.Conns {
+			if err := conn.WriteJSON(data); err != nil {
+				log.Println("Write JSON error:", err)
+			}
+		}
+		s.connsMu.Unlock()
+
+	}
+
 }

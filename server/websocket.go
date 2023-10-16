@@ -44,16 +44,17 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	if playerID == 1 {
 		s.NewGame()
 	} else {
-		newPlayer := game.NewPlayer(playerID, *s.Game.Map)
-		updatedPlayers := append(*s.Game.Players, *newPlayer)
-		s.Game.Players = &updatedPlayers
+		newPlayer := game.NewPlayer(playerID, s.Game.Map)
+		updatedPlayers := append(s.Game.Players, *newPlayer)
+		s.Game.Players = updatedPlayers
+		s.gameStateChannel <- s.Game
 	}
 
 	s.Game.KeysPressed[playerID] = make(map[string]bool)
 	s.ControlChan <- "start"
 
 	s.Game.Type = "new_game"
-	conn.WriteJSON(s.Game)
+
 	var lastKeydownTime time.Time
 	debounceDuration := 50 * time.Millisecond
 	for {
