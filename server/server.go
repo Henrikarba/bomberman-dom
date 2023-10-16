@@ -177,7 +177,6 @@ func (s *Server) UpdateGameState() {
 			data.Type = "map_state_update"
 			data.BlockUpdate = mapUpdate
 			s.sendUpdatesToPlayers(data)
-
 		case playerUpdate := <-s.playerUpdateChannel:
 			s.gameMu.Lock()
 			s.Game.Players = nil
@@ -186,7 +185,6 @@ func (s *Server) UpdateGameState() {
 			s.Game.Players = playerUpdate
 			s.gameMu.Unlock()
 			s.sendUpdatesToPlayers(data)
-
 		}
 	}
 

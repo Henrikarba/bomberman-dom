@@ -65,14 +65,16 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 
 			// Check block type
 			blockType := gameboard[newY][newX]
-			if blockType == Wall {
+			if blockType == Wall || blockType == Flame {
 				break
 			} else if blockType == Block {
 				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
+				gameboard[newY][newX] = Flame // Update the gameboard immediately
 				break
 			} else {
 				// Empty or already on fire, propagate flame
 				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
+				gameboard[newY][newX] = Flame // Update the gameboard immediately
 			}
 		}
 	}
