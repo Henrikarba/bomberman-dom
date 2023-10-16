@@ -2,6 +2,7 @@ package server
 
 import (
 	"bomberman-dom/game"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -47,6 +48,7 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		s.gameMu.Unlock()
 	}()
 	if playerID == 1 {
+		fmt.Println("new game started..")
 		s.NewGame()
 	} else {
 		newPlayer := game.NewPlayer(playerID, s.Game.Map)
