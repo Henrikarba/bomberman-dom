@@ -58,6 +58,7 @@ func (s *Server) NewGame() {
 	s.Game.Map = gameboard
 	s.Game.Type = "new_game"
 	s.Game.KeysPressed = make(map[int]map[string]bool)
+	fmt.Println("?")
 	go s.UpdateGameState()
 }
 
@@ -87,42 +88,40 @@ func (s *Server) ListenForKeyPress(ctx context.Context) {
 }
 
 func (s *Server) HandleKeyPress() {
-
+	shouldUpdate := false // Flag to check if update is needed
 	for i, player := range s.Game.Players {
 		if keys, ok := s.Game.KeysPressed[player.ID]; ok {
 			// Bomb plant
 			if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
-				// (s.Game.Players)[i].AvailableBombs--
+				(s.Game.Players)[i].AvailableBombs--
 				bombX := (s.Game.Players)[i].X
 				bombY := (s.Game.Players)[i].Y
 				fireDistance := (s.Game.Players)[i].FireDistance
 				currentMap := s.Game.Map
 				go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
+				go time.AfterFunc(3500*time.Millisecond, func() {
+					(s.Game.Players)[i].AvailableBombs++
+				})
 			}
 
 			// Movement
 			if time.Since(player.LastMoveTime) >= time.Second*time.Duration(100)/time.Duration(player.Speed) {
-				MovePlayer := func(newX, newY int) {
-					(s.Game.Players)[i].X = newX
-					(s.Game.Players)[i].Y = newY
-					(s.Game.Players)[i].LastMoveTime = time.Now()
-					s.playerUpdateChannel <- s.Game.Players
-				}
 				newX, newY := player.X, player.Y
 				if keys["w"] {
 					newY -= 1
-					(s.Game.Players)[i].Direction = "up"
+					s.Game.Players[i].Direction = "up"
 				} else if keys["s"] {
 					newY += 1
-					(s.Game.Players)[i].Direction = "down"
+					s.Game.Players[i].Direction = "down"
 				} else if keys["a"] {
 					newX -= 1
-					(s.Game.Players)[i].Direction = "left"
+					s.Game.Players[i].Direction = "left"
 				} else if keys["d"] {
 					newX += 1
-					(s.Game.Players)[i].Direction = "right"
+					s.Game.Players[i].Direction = "right"
 				}
 
+				s.gameMu.Lock()
 				collision, typeof := game.IsCollision(s.Game.Map, newX, newY, s.Game.Players, player.ID)
 				if collision {
 					if typeof == "Player" {
@@ -132,11 +131,11 @@ func (s *Server) HandleKeyPress() {
 					} else if typeof == "f" {
 						fmt.Println("Hit flame, -1 life")
 						(s.Game.Players)[i].Lives--
-						MovePlayer(newX, newY)
+						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					} else if typeof == "ex" {
 						fmt.Println("Hit explosion, -1 life")
 						(s.Game.Players)[i].Lives--
-						MovePlayer(newX, newY)
+						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					} else if typeof == "p" {
 						// fmt.Println("+ 1 bomb")
 						// s.BlockUpdate = &[]BlockUpdate{}
@@ -147,53 +146,67 @@ func (s *Server) HandleKeyPress() {
 						// MovePlayer(newX, newY)
 					}
 				} else {
-					MovePlayer(newX, newY)
+					s.MovePlayer(i, newX, newY, &shouldUpdate)
 				}
+				s.gameMu.Unlock()
 			}
 		}
 	}
+	if shouldUpdate {
+		s.playerUpdateChannel <- s.Game.Players
+	}
+}
+
+func (s *Server) MovePlayer(i, newX, newY int, shouldUpdate *bool) {
+	s.Game.Players[i].X = newX
+	s.Game.Players[i].Y = newY
+	s.Game.Players[i].LastMoveTime = time.Now()
+	*shouldUpdate = true
 }
 
 func (s *Server) UpdateGameState() {
 	data := game.GameState{}
 	for {
+		data.BlockUpdate = nil
+		data.Players = nil
 		select {
 		case mapUpdate := <-s.mapUpdateChannel:
 			s.gameMu.Lock()
-			s.Game.BlockUpdate = nil
 			s.Game.BlockUpdate = mapUpdate
-			fmt.Println("Updated map")
 			for _, update := range mapUpdate {
-				s.Game.Map[update.Y][update.X] = update.Block
-			}
-			for _, row := range s.Game.Map {
-				for _, cell := range row {
-					fmt.Printf("%2s", cell)
+				// Check for player hits
+				if update.Block == "f" || update.Block == "ex" {
+					for i, player := range s.Game.Players {
+						if player.X == update.X && player.Y == update.Y {
+							s.Game.Players[i].Lives--
+							s.playerUpdateChannel <- s.Game.Players
+						}
+					}
 				}
-				fmt.Println()
+				s.Game.Map[update.Y][update.X] = update.Block
 			}
 			s.gameMu.Unlock()
 
 			data.Type = "map_state_update"
 			data.BlockUpdate = mapUpdate
-			s.sendUpdatesToPlayers(data)
 			break
 		case playerUpdate := <-s.playerUpdateChannel:
 			s.gameMu.Lock()
-			s.Game.Players = nil
 			data.Type = "player_state_update"
 			data.Players = playerUpdate
 			s.Game.Players = playerUpdate
 			s.gameMu.Unlock()
-			s.sendUpdatesToPlayers(data)
 			break
 		}
+
+		s.sendUpdatesToPlayers(data)
+
 	}
 
 }
 
 func (s *Server) sendUpdatesToPlayers(data interface{}) {
-	// fmt.Printf("Sending update: %v\n\n", data)
+
 	s.connsMu.Lock()
 	for _, conn := range s.Conns {
 		if err := conn.WriteJSON(data); err != nil {
@@ -201,4 +214,7 @@ func (s *Server) sendUpdatesToPlayers(data interface{}) {
 		}
 	}
 	s.connsMu.Unlock()
+	s.gameMu.Lock()
+	s.Game.BlockUpdate = nil
+	s.gameMu.Unlock()
 }

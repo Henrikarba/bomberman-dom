@@ -25,7 +25,9 @@ func AddPoweup() bool {
 	return randomNumber == 1
 }
 
-func PlayerMove() {}
+func MovePlayer() {
+
+}
 
 func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
 	blockUpdate := []BlockUpdate{
@@ -71,12 +73,12 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 				break
 			} else if blockType == Block {
 				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
-				gameboard[newY][newX] = Flame // Update the gameboard immediately
+				gameboard[newY][newX] = Flame
 				break
 			} else {
 				// Empty or already on fire, propagate flame
 				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
-				gameboard[newY][newX] = Flame // Update the gameboard immediately
+				gameboard[newY][newX] = Flame
 			}
 		}
 	}
@@ -89,8 +91,9 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 }
 
 func clearExplosion(blockUpdates []BlockUpdate, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
-	for i := range blockUpdates {
-		blockUpdates[i].Block = "e"
+	clearUpdates := make([]BlockUpdate, len(blockUpdates))
+	for i, update := range blockUpdates {
+		clearUpdates[i] = BlockUpdate{X: update.X, Y: update.Y, Block: "e"}
 	}
-	mapUpdateChannel <- blockUpdates
+	mapUpdateChannel <- clearUpdates
 }
