@@ -25,57 +25,68 @@ func AddPoweup() bool {
 	return randomNumber == 1
 }
 
-func PlantBomb(x int, y int, fireDistance int, s *GameState, mapUpdateChannel chan<- []BlockUpdate) {
-	if s.BlockUpdate == nil {
-		s.BlockUpdate = []BlockUpdate{}
+func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
+	blockUpdate := []BlockUpdate{
+		{
+			X:     x,
+			Y:     y,
+			Block: "B",
+		},
 	}
 
-	s.BlockUpdate = append(s.BlockUpdate, BlockUpdate{X: x, Y: y, Block: "B"})
-	mapUpdateChannel <- s.BlockUpdate
+	mapUpdateChannel <- blockUpdate
 
-	time.AfterFunc(3*time.Second, func() {
-		handleExplosion(x, y, fireDistance, *s, mapUpdateChannel)
+	go time.AfterFunc(3*time.Second, func() {
+		handleExplosion(x, y, fireDistance, gameboard, mapUpdateChannel)
 	})
 }
 
-func handleExplosion(x int, y int, fireDistance int, s GameState, mapUpdateChannel chan<- []BlockUpdate) {
-	if s.BlockUpdate == nil {
-		s.BlockUpdate = []BlockUpdate{}
+func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
+	blockUpdate := []BlockUpdate{
+		{
+			X:     x,
+			Y:     y,
+			Block: Explosion,
+		},
 	}
 
-	s.BlockUpdate = append(s.BlockUpdate, BlockUpdate{X: x, Y: y, Block: "ex"})
-	mapUpdateChannel <- s.BlockUpdate
-	FlameBlocks(&s, x, y, 0, 1, fireDistance, mapUpdateChannel)  // Up
-	FlameBlocks(&s, x, y, 0, -1, fireDistance, mapUpdateChannel) // Down
-	FlameBlocks(&s, x, y, 1, 0, fireDistance, mapUpdateChannel)  // Right
-	FlameBlocks(&s, x, y, -1, 0, fireDistance, mapUpdateChannel) // Left
-}
+	// Directions: Up, Down, Left, Right
+	directions := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
 
-func FlameBlocks(s *GameState, x, y, directionX, directionY, fireDistance int, mapUpdateChannel chan<- []BlockUpdate) {
-	for i := 1; i <= fireDistance; i++ {
-		newX, newY := x+(i*directionX), y+(i*directionY)
-		if newX >= 0 && newX < len(s.Map) && newY >= 0 && newY < len((s.Map)[newY]) {
-			blockType := (s.Map)[newY][newX]
-			if blockType == "d" || blockType == "e" || blockType == "f" {
-				(s.Map)[newY][newX] = "f"
-				s.BlockUpdate = append(s.BlockUpdate, BlockUpdate{X: newX, Y: newY, Block: "f"})
-				mapUpdateChannel <- s.BlockUpdate
+	for _, dir := range directions {
+		dx, dy := dir[0], dir[1]
+		for i := 1; i <= fireDistance; i++ {
+			newX, newY := x+(i*dx), y+(i*dy)
 
-				go time.AfterFunc(1000*time.Millisecond, func() {
-					clearFlame(s, newX, newY, mapUpdateChannel)
-				})
-			} else {
+			// Check boundaries
+			if newX < 0 || newX >= len(gameboard[0]) || newY < 0 || newY >= len(gameboard) {
 				break
+			}
+
+			// Check block type
+			blockType := gameboard[newY][newX]
+			if blockType == Wall {
+				break
+			} else if blockType == Block {
+				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
+				break
+			} else {
+				// Empty or already on fire, propagate flame
+				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
 			}
 		}
 	}
+
+	mapUpdateChannel <- blockUpdate
+
+	go time.AfterFunc(1*time.Second, func() {
+		clearExplosion(blockUpdate, gameboard, mapUpdateChannel)
+	})
 }
 
-func clearFlame(s *GameState, x, y int, mapUpdateChannel chan<- []BlockUpdate) {
-	if s.BlockUpdate == nil {
-		s.BlockUpdate = []BlockUpdate{}
+func clearExplosion(blockUpdates []BlockUpdate, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
+	for i := range blockUpdates {
+		blockUpdates[i].Block = "e"
 	}
-
-	s.BlockUpdate = append(s.BlockUpdate, BlockUpdate{X: x, Y: y, Block: "e"})
-	mapUpdateChannel <- s.BlockUpdate
+	mapUpdateChannel <- blockUpdates
 }

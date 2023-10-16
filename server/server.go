@@ -28,6 +28,7 @@ type Server struct {
 }
 
 func New() *Server {
+
 	return &Server{
 		gameMu: sync.Mutex{},
 		Game:   game.GameState{},
@@ -52,13 +53,11 @@ func (s *Server) NewGame() {
 		newPlayer := game.NewPlayer(id, gameboard)
 		players = append(players, *newPlayer)
 	}
-
 	s.Game.BlockUpdate = blockUpdates
 	s.Game.Players = players
 	s.Game.Map = gameboard
 	s.Game.Type = "new_game"
 	s.Game.KeysPressed = make(map[int]map[string]bool)
-	s.gameStateChannel <- s.Game
 	go s.UpdateGameState()
 }
 
@@ -97,7 +96,8 @@ func (s *Server) HandleKeyPress() {
 				bombX := (s.Game.Players)[i].X
 				bombY := (s.Game.Players)[i].Y
 				fireDistance := (s.Game.Players)[i].FireDistance
-				go game.PlantBomb(bombX, bombY, fireDistance, &s.Game, s.mapUpdateChannel)
+				currentMap := s.Game.Map
+				go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
 			}
 
 			// Movement
@@ -155,30 +155,49 @@ func (s *Server) HandleKeyPress() {
 }
 
 func (s *Server) UpdateGameState() {
+	data := game.GameState{}
 	for {
-		data := s.Game
 		select {
-		case gameStateUpdate := <-s.gameStateChannel:
-			data = gameStateUpdate
-			data.Type = "new_game"
 		case mapUpdate := <-s.mapUpdateChannel:
+			s.gameMu.Lock()
+			s.Game.BlockUpdate = nil
+			s.Game.BlockUpdate = mapUpdate
+			fmt.Println("Updated map")
+			for _, update := range mapUpdate {
+				s.Game.Map[update.Y][update.X] = update.Block
+			}
+			for _, row := range s.Game.Map {
+				for _, cell := range row {
+					fmt.Printf("%2s", cell)
+				}
+				fmt.Println()
+			}
+			s.gameMu.Unlock()
+
 			data.Type = "map_state_update"
 			data.BlockUpdate = mapUpdate
+			s.sendUpdatesToPlayers(data)
+
 		case playerUpdate := <-s.playerUpdateChannel:
-			// Handle player updates
+			s.gameMu.Lock()
+			s.Game.Players = nil
 			data.Type = "player_state_update"
 			data.Players = playerUpdate
+			s.Game.Players = playerUpdate
+			s.gameMu.Unlock()
+			s.sendUpdatesToPlayers(data)
 
 		}
-		// Send updated game state to all players
-		s.connsMu.Lock()
-		for _, conn := range s.Conns {
-			if err := conn.WriteJSON(data); err != nil {
-				log.Println("Write JSON error:", err)
-			}
-		}
-		s.connsMu.Unlock()
-
 	}
 
+}
+
+func (s *Server) sendUpdatesToPlayers(data interface{}) {
+	s.connsMu.Lock()
+	for _, conn := range s.Conns {
+		if err := conn.WriteJSON(data); err != nil {
+			log.Println("Write JSON error:", err)
+		}
+	}
+	s.connsMu.Unlock()
 }
