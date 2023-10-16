@@ -79,7 +79,6 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 				// Empty or already on fire, propagate flame
 				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
 				gameboard[newY][newX] = Flame
-				break
 			}
 		}
 	}

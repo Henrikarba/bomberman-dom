@@ -93,12 +93,15 @@ func (s *Server) HandleKeyPress() {
 		if keys, ok := s.Game.KeysPressed[player.ID]; ok {
 			// Bomb plant
 			if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
-				// (s.Game.Players)[i].AvailableBombs--
+				(s.Game.Players)[i].AvailableBombs--
 				bombX := (s.Game.Players)[i].X
 				bombY := (s.Game.Players)[i].Y
 				fireDistance := (s.Game.Players)[i].FireDistance
 				currentMap := s.Game.Map
 				go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
+				go time.AfterFunc(3500*time.Millisecond, func() {
+					(s.Game.Players)[i].AvailableBombs++
+				})
 			}
 
 			// Movement
@@ -150,7 +153,6 @@ func (s *Server) HandleKeyPress() {
 		}
 	}
 	if shouldUpdate {
-
 		s.playerUpdateChannel <- s.Game.Players
 	}
 }
@@ -172,6 +174,15 @@ func (s *Server) UpdateGameState() {
 			s.gameMu.Lock()
 			s.Game.BlockUpdate = mapUpdate
 			for _, update := range mapUpdate {
+				// Check for player hits
+				if update.Block == "f" || update.Block == "ex" {
+					for i, player := range s.Game.Players {
+						if player.X == update.X && player.Y == update.Y {
+							s.Game.Players[i].Lives--
+							s.playerUpdateChannel <- s.Game.Players
+						}
+					}
+				}
 				s.Game.Map[update.Y][update.X] = update.Block
 			}
 			s.gameMu.Unlock()
