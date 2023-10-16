@@ -177,6 +177,7 @@ func (s *Server) UpdateGameState() {
 			data.Type = "map_state_update"
 			data.BlockUpdate = mapUpdate
 			s.sendUpdatesToPlayers(data)
+			break
 		case playerUpdate := <-s.playerUpdateChannel:
 			s.gameMu.Lock()
 			s.Game.Players = nil
@@ -185,12 +186,14 @@ func (s *Server) UpdateGameState() {
 			s.Game.Players = playerUpdate
 			s.gameMu.Unlock()
 			s.sendUpdatesToPlayers(data)
+			break
 		}
 	}
 
 }
 
 func (s *Server) sendUpdatesToPlayers(data interface{}) {
+	// fmt.Printf("Sending update: %v\n\n", data)
 	s.connsMu.Lock()
 	for _, conn := range s.Conns {
 		if err := conn.WriteJSON(data); err != nil {

@@ -25,6 +25,8 @@ func AddPoweup() bool {
 	return randomNumber == 1
 }
 
+func PlayerMove() {}
+
 func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
 	blockUpdate := []BlockUpdate{
 		{

@@ -1,8 +1,8 @@
 package main
 
 import (
-	log "bomberman-dom/server/logger"
 	"bomberman-dom/server"
+	log "bomberman-dom/server/logger"
 	"context"
 	"fmt"
 	"net/http"
@@ -35,7 +35,7 @@ func main() {
 				listening = true
 				ctx, s.CancelFunc = context.WithCancel(context.Background())
 				go s.ListenForKeyPress(ctx)
-			} else if cmd == "stop" && listening {
+			} else if cmd == "stop" && listening && len(s.Game.Players) == 0 {
 				fmt.Println("Stopped listening for keypresses")
 				log.Info("Stopped listening for keypresses")
 				listening = false

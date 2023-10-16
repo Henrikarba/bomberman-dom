@@ -39,7 +39,13 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.AddConn(playerID, conn)
-	defer s.RemoveConn(playerID)
+	defer func() {
+		s.RemoveConn(playerID)
+
+		s.gameMu.Lock()
+		s.Game.Players = removePlayerByID(s.Game.Players, playerID)
+		s.gameMu.Unlock()
+	}()
 	if playerID == 1 {
 		s.NewGame()
 	} else {
@@ -90,4 +96,13 @@ func (s *Server) RemoveConn(userID int) {
 	s.connsMu.Lock()
 	defer s.connsMu.Unlock()
 	delete(s.Conns, userID)
+}
+
+func removePlayerByID(players []game.Player, playerID int) []game.Player {
+	for i, player := range players {
+		if player.ID == playerID {
+			return append(players[:i], players[i+1:]...)
+		}
+	}
+	return players
 }
