@@ -112,10 +112,15 @@ function gameloop(updateType) {
 	function updatePlayerPosition(gameboard) {
 		playerState.value.forEach((player) => {
 			let playerElement = playerElements[player.id]
-			if (!playerElement) {
+			if (!playerElement && player.lives > 0) {
 				playerElement = Player(player)
 				playerElements[player.id] = playerElement
 				gameboard.appendChild(playerElement.getSprite())
+			}
+
+			if (player.lives <= 0) {
+				let removePlayer = document.getElementById(`player${player.id}`)
+				removePlayer.style.display = "none"
 			}
 
 			if (playerElement) {

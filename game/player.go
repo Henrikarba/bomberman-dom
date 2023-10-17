@@ -20,7 +20,7 @@ type Player struct {
 	Speed          int       `json:"-"`
 	AvailableBombs int       `json:"bombs,omitempty"`
 	FireDistance   int       `json:"-"`
-	Lives          int       `json:"lives,omitempty"`
+	Lives          int       `json:"lives"`
 	// PowerUps       []PowerUp
 }
 
