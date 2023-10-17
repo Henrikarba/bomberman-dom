@@ -10,6 +10,7 @@ type Movement struct {
 }
 
 type Player struct {
+	Name      string `json:"name"`
 	ID        int    `json:"id,omitempty"`
 	X         int    `json:"x"`
 	Y         int    `json:"y"`
@@ -23,8 +24,9 @@ type Player struct {
 	// PowerUps       []PowerUp
 }
 
-func NewPlayer(id int, gameboard [][]string) *Player {
+func NewPlayer(id int, gameboard [][]string, name string) *Player {
 	player := &Player{
+		Name:           name,
 		ID:             id,
 		Speed:          300,
 		AvailableBombs: 1,

@@ -12,6 +12,9 @@ type GameState struct {
 	BlockUpdate []BlockUpdate           `json:"block_updates,omitempty"`
 	Players     []Player                `json:"players,omitempty"`
 	KeysPressed map[int]map[string]bool `json:"-"`
+
+	PlayerCount int `json:"player_count,omitempty"`
+	CountDown   int `json:"countdown,omitempty"`
 }
 
 type BlockUpdate struct {
@@ -23,10 +26,6 @@ type BlockUpdate struct {
 func AddPoweup() bool {
 	randomNumber := rand.Intn(2) + 1
 	return randomNumber == 1
-}
-
-func MovePlayer() {
-
 }
 
 func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {

@@ -25,6 +25,7 @@ type Server struct {
 	gameStateChannel    chan game.GameState
 	mapUpdateChannel    chan []game.BlockUpdate
 	playerUpdateChannel chan []game.Player
+	playerCountChannel  chan game.Player
 }
 
 func New() *Server {
@@ -36,33 +37,34 @@ func New() *Server {
 		connsMu:         sync.RWMutex{},
 		Conns:           make(map[int]*websocket.Conn),
 		keyEventChannel: make(chan game.Movement, 100),
-		ControlChan:     make(chan string),
+		ControlChan:     make(chan string, 4),
 
 		gameStateChannel:    make(chan game.GameState, 100),
 		mapUpdateChannel:    make(chan []game.BlockUpdate, 100),
 		playerUpdateChannel: make(chan []game.Player, 100),
+		playerCountChannel:  make(chan game.Player, 4),
 	}
 }
 
 func (s *Server) NewGame() {
+	fmt.Println("Initializing New Game")
+	s.Game.KeysPressed = make(map[int]map[string]bool)
+
 	gameboard := game.CreateMap()
-	players := []game.Player{}
 	blockUpdates := []game.BlockUpdate{}
 
-	for id := range s.Conns {
-		newPlayer := game.NewPlayer(id, gameboard)
-		players = append(players, *newPlayer)
-	}
 	s.Game.BlockUpdate = blockUpdates
-	s.Game.Players = players
 	s.Game.Map = gameboard
 	s.Game.Type = "new_game"
-	s.Game.KeysPressed = make(map[int]map[string]bool)
-	fmt.Println("?")
 	go s.UpdateGameState()
 }
 
 func (s *Server) ListenForKeyPress(ctx context.Context) {
+	if s.Game.KeysPressed == nil {
+		fmt.Println("s.Game.KeysPressed is nil")
+		return
+	}
+	fmt.Println("Inside ListenForKeyPress, s.Game.KeysPressed:", s.Game.KeysPressed)
 	// Initialize s.Game.KeysPressed for all players
 	for id := range s.Conns {
 		s.Game.KeysPressed[id] = make(map[string]bool)
@@ -93,15 +95,27 @@ func (s *Server) HandleKeyPress() {
 		if keys, ok := s.Game.KeysPressed[player.ID]; ok {
 			// Bomb plant
 			if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
+				s.gameMu.Lock()
 				(s.Game.Players)[i].AvailableBombs--
+				s.gameMu.Unlock()
 				bombX := (s.Game.Players)[i].X
 				bombY := (s.Game.Players)[i].Y
 				fireDistance := (s.Game.Players)[i].FireDistance
 				currentMap := s.Game.Map
 				go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
-				go time.AfterFunc(3500*time.Millisecond, func() {
-					(s.Game.Players)[i].AvailableBombs++
-				})
+				go func(playerID int) {
+					time.AfterFunc(3500*time.Millisecond, func() {
+						s.gameMu.Lock()
+						defer s.gameMu.Unlock()
+
+						for i := range s.Game.Players {
+							if s.Game.Players[i].ID == playerID {
+								s.Game.Players[i].AvailableBombs++
+								break
+							}
+						}
+					})
+				}(s.Game.Players[i].ID)
 			}
 
 			// Movement
@@ -125,15 +139,15 @@ func (s *Server) HandleKeyPress() {
 				collision, typeof := game.IsCollision(s.Game.Map, newX, newY, s.Game.Players, player.ID)
 				if collision {
 					if typeof == "Player" {
-						fmt.Println("Hit another player")
+						// fmt.Println("Hit another player")
 					} else if typeof == "Wall" || typeof == "Bomb" {
-						fmt.Println("Hit a wall or a bomb")
+						// fmt.Println("Hit a wall or a bomb")
 					} else if typeof == "f" {
-						fmt.Println("Hit flame, -1 life")
+						// fmt.Println("Hit flame, -1 life")
 						(s.Game.Players)[i].Lives--
 						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					} else if typeof == "ex" {
-						fmt.Println("Hit explosion, -1 life")
+						// fmt.Println("Hit explosion, -1 life")
 						(s.Game.Players)[i].Lives--
 						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					} else if typeof == "p" {
@@ -170,6 +184,9 @@ func (s *Server) UpdateGameState() {
 		data.BlockUpdate = nil
 		data.Players = nil
 		select {
+		case gameStateUpdate := <-s.gameStateChannel:
+			data = gameStateUpdate
+			break
 		case mapUpdate := <-s.mapUpdateChannel:
 			s.gameMu.Lock()
 			s.Game.BlockUpdate = mapUpdate
@@ -183,7 +200,9 @@ func (s *Server) UpdateGameState() {
 						}
 					}
 				}
-				s.Game.Map[update.Y][update.X] = update.Block
+				if update.Y != -300 && update.X != -300 {
+					s.Game.Map[update.Y][update.X] = update.Block
+				}
 			}
 			s.gameMu.Unlock()
 
@@ -202,7 +221,40 @@ func (s *Server) UpdateGameState() {
 		s.sendUpdatesToPlayers(data)
 
 	}
+}
 
+func (s *Server) MonitorPlayerCount() {
+	data := game.GameState{
+		Type: "status",
+	}
+	for {
+		select {
+		case player := <-s.playerCountChannel:
+			s.gameMu.Lock()
+			currentCount := s.Game.PlayerCount
+			s.gameMu.Unlock()
+
+			if currentCount >= 2 {
+				s.NewGame()
+				for id := range s.Conns {
+					player := game.NewPlayer(id, s.Game.Map, player.Name)
+					s.Game.Players = append(s.Game.Players, *player)
+					s.Game.KeysPressed[id] = make(map[string]bool)
+				}
+
+				for i := 6; i >= 0; i-- {
+					data.CountDown = i
+					s.sendUpdatesToPlayers(data)
+					time.Sleep(1 * time.Second)
+					fmt.Println("Starting game in: ", i)
+					if i == 0 {
+						s.ControlChan <- "start"
+						s.gameStateChannel <- s.Game
+					}
+				}
+			}
+		}
+	}
 }
 
 func (s *Server) sendUpdatesToPlayers(data interface{}) {

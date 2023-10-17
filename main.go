@@ -30,7 +30,7 @@ func main() {
 		for {
 			cmd := <-s.ControlChan
 			if cmd == "start" && !listening {
-				fmt.Println("Started listening for keypresses")
+				fmt.Println("ControlChan received start command, listening to keypresses")
 				log.Info("Started listening for keypresses")
 				listening = true
 				ctx, s.CancelFunc = context.WithCancel(context.Background())
@@ -46,10 +46,11 @@ func main() {
 		}
 	}()
 
+	go s.MonitorPlayerCount()
+
 	log.Info("Bomberman running on http://localhost:", PORT)
 	err = http.ListenAndServe(fmt.Sprintf(":%v", PORT), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-
 }

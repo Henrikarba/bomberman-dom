@@ -2,6 +2,7 @@ package server
 
 import (
 	"bomberman-dom/game"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,6 +28,11 @@ func getNextPlayerID() int {
 	return id
 }
 
+type MessageType struct {
+	Type    string `json:"type"`
+	Message string `json:"message,omitempty"`
+}
+
 func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -36,55 +42,27 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	playerID := getNextPlayerID()
 	if playerID > 4 {
-		log.Println("Maximum players reached")
+		conn.WriteJSON(MessageType{Type: "server_full", Message: "Server is currently full, try again later"})
+		playerCounter--
 		return
 	}
+
+	// Add, remove players
 	s.AddConn(playerID, conn)
-	defer func() {
-		s.RemoveConn(playerID)
 
-		s.gameMu.Lock()
-		s.Game.Players = removePlayerByID(s.Game.Players, playerID)
-		s.gameMu.Unlock()
-	}()
-	if playerID == 1 {
-		fmt.Println("new game started..")
-		s.NewGame()
-	} else {
-		newPlayer := game.NewPlayer(playerID, s.Game.Map)
-		updatedPlayers := append(s.Game.Players, *newPlayer)
-		s.Game.Players = updatedPlayers
-	}
-
-	s.Game.KeysPressed[playerID] = make(map[string]bool)
-	s.ControlChan <- "start"
-
-	s.Game.Type = "new_game"
-	s.connsMu.Lock()
-	s.Conns[playerID].WriteJSON(s.Game)
-	s.connsMu.Unlock()
 	var lastKeydownTime time.Time
 	debounceDuration := 50 * time.Millisecond
 	for {
-		var move = game.Movement{}
-		err := conn.ReadJSON(&move)
+		var rawMessage json.RawMessage
+		err := conn.ReadJSON(&rawMessage)
 		if err != nil {
 			log.Println("Error reading JSON:", err)
-			playerCounter--
 			s.ControlChan <- "stop"
+			s.RemoveConn(playerID)
+			playerCounter--
 			return
 		}
-		move.PlayerID = playerID
-
-		if move.Type == "keydown" {
-			currentTime := time.Now()
-			if currentTime.Sub(lastKeydownTime) >= debounceDuration {
-				lastKeydownTime = currentTime
-				s.keyEventChannel <- move
-			}
-		} else {
-			s.keyEventChannel <- move
-		}
+		s.handleMessage(rawMessage, playerID, &lastKeydownTime, debounceDuration)
 	}
 }
 
@@ -92,19 +70,83 @@ func (s *Server) AddConn(userID int, conn *websocket.Conn) {
 	s.connsMu.Lock()
 	defer s.connsMu.Unlock()
 	s.Conns[userID] = conn
+	fmt.Printf("Added connection with id %d\n", userID)
+	fmt.Println("s.Conns = ", s.Conns)
 }
 
 func (s *Server) RemoveConn(userID int) {
+	// Lock both mutexes
+	s.gameMu.Lock()
 	s.connsMu.Lock()
+	defer s.gameMu.Unlock()
 	defer s.connsMu.Unlock()
+
+	// Remove player from game state
+	for i := range s.Game.Players {
+		if s.Game.Players[i].ID == userID {
+			delete(s.Game.KeysPressed, userID)
+			s.Game.Players[i].X = -300
+			s.Game.Players[i].Y = -300
+			s.playerUpdateChannel <- s.Game.Players
+			s.Game.Players = s.removePlayerByID(s.Game.Players, userID)
+			break
+		}
+	}
+
+	// Remove connection
 	delete(s.Conns, userID)
+
+	fmt.Printf("Removed connection with id %d\n", userID)
+	fmt.Println("s.Conns = ", s.Conns)
 }
 
-func removePlayerByID(players []game.Player, playerID int) []game.Player {
+func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
+
 	for i, player := range players {
 		if player.ID == playerID {
+			s.Game.PlayerCount--
 			return append(players[:i], players[i+1:]...)
 		}
 	}
 	return players
+}
+
+func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKeydownTime *time.Time, debounceDuration time.Duration) {
+	var genMsg MessageType
+	err := json.Unmarshal(rawMessage, &genMsg)
+	if err != nil {
+		log.Println("Error unmarshaling to MessageType:", err)
+		return
+	}
+
+	switch genMsg.Type {
+	case "keydown", "keyup":
+		var move game.Movement
+		err = json.Unmarshal(rawMessage, &move)
+		if err != nil {
+			log.Println("Error unmarshaling to Movement:", err)
+			return
+		}
+		move.PlayerID = playerID
+		if move.Type == "keydown" {
+			currentTime := time.Now()
+			if currentTime.Sub(*lastKeydownTime) >= debounceDuration {
+				lastKeydownTime = &currentTime
+				s.keyEventChannel <- move
+			}
+		} else {
+			s.keyEventChannel <- move
+		}
+
+	case "register":
+
+		var registerMsg game.Player
+		err = json.Unmarshal(rawMessage, &registerMsg)
+		if err != nil {
+			log.Println("Error unmarshaling to RegisterMessage:", err)
+			return
+		}
+		s.Game.PlayerCount++
+		s.playerCountChannel <- registerMsg
+	}
 }

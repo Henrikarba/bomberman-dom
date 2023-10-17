@@ -1,9 +1,14 @@
 import mini from './mini/framework.js'
+import { drawStartMenu } from './start.js'
 import Player from './player.js'
 
 // App
 const app = mini.createApp('app')
-const socket = new WebSocket('ws://localhost:5000/ws')
+export const socket = new WebSocket('ws://localhost:5000/ws')
+
+// Views
+const startMenu = drawStartMenu()
+mini.render(app, startMenu)
 
 // Game
 const mapState = mini.createState([])
@@ -11,14 +16,18 @@ const playerState = mini.createState([])
 const blockUpdates = mini.createState([])
 let gameboard = undefined
 const playerElements = {}
+let playerCount = 0
 
 function gameloop(updateType) {
-	if (!gameboard) gameboard = drawGameboard(mapState.value)
-
 	switch (updateType) {
+		case 'status':
+			console.log(playerCount)
+			break
 		case 'new_game':
+			if (!gameboard) gameboard = drawGameboard(mapState.value)
 			updatePlayerPosition(gameboard)
 			mini.render(app, gameboard)
+
 			break
 
 		case 'player_state_update':
@@ -29,44 +38,41 @@ function gameloop(updateType) {
 				if (update.block == 'B') {
 					const bomb = createBombElement(update.x, update.y)
 					gameboard.appendChild(bomb)
-					console.log(bomb)
 				}
 				if (update.block == 'ex') {
-					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`);
+					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveBomb) {
-						RemoveBomb.remove();
+						RemoveBomb.remove()
 					}
 					const explosion = createExplosionElement(update.x, update.y)
 					gameboard.appendChild(explosion)
-					console.log(explosion)
 				}
 				if (update.block == 'f') {
 					const flame = createFlameElement(update.x, update.y)
 					gameboard.appendChild(flame)
-					console.log(flame)
 				}
 				if (update.block == 'e') {
-					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`)
 					if (changeCell) {
-						changeCell.className = "cell"
+						changeCell.className = 'cell'
 					}
-					const RemovePower = document.querySelector(`.power[x="${update.x}"][y="${update.y}"]`);
+					const RemovePower = document.querySelector(`.power[x="${update.x}"][y="${update.y}"]`)
 					if (RemovePower) {
-						RemovePower.remove();
+						RemovePower.remove()
 					}
-					const RemoveFlame = document.querySelector(`.flame[x="${update.x}"][y="${update.y}"]`);
+					const RemoveFlame = document.querySelector(`.flame[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveFlame) {
-						RemoveFlame.remove();
+						RemoveFlame.remove()
 					}
-					const RemoveExplosion = document.querySelector(`.explosion[x="${update.x}"][y="${update.y}"]`);
+					const RemoveExplosion = document.querySelector(`.explosion[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveExplosion) {
-						RemoveExplosion.remove();
+						RemoveExplosion.remove()
 					}
 				}
 				if (update.block == 'p') {
-					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`)
 					if (changeCell) {
-						changeCell.className = "cell"
+						changeCell.className = 'cell'
 					}
 					const power = createPowerElement(update.x, update.y)
 					gameboard.appendChild(power)
@@ -96,25 +102,37 @@ function gameloop(updateType) {
 
 	function createPowerElement(x, y) {
 		return mini.div({
-			class: 'power', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			class: 'power',
+			style: `left: ${x * 64}px; top: ${y * 64}px`,
+			x: x,
+			y: y,
 		})
 	}
 
 	function createBombElement(x, y) {
 		return mini.div({
-			class: 'bomb', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			class: 'bomb',
+			style: `left: ${x * 64}px; top: ${y * 64}px`,
+			x: x,
+			y: y,
 		})
 	}
 
 	function createExplosionElement(x, y) {
 		return mini.div({
-			class: 'explosion', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			class: 'explosion',
+			style: `left: ${x * 64}px; top: ${y * 64}px`,
+			x: x,
+			y: y,
 		})
 	}
 
 	function createFlameElement(x, y) {
 		return mini.div({
-			class: 'flame', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			class: 'flame',
+			style: `left: ${x * 64}px; top: ${y * 64}px`,
+			x: x,
+			y: y,
 		})
 	}
 }
@@ -148,11 +166,31 @@ socket.onmessage = (e) => {
 	const data = JSON.parse(e.data)
 	console.log(data)
 	switch (data.type) {
+		case 'status':
+			playerCount = data.player_count
+			break
+		case 'server_full':
+			app.innerHTML = data.message
+			break
 		case 'new_game':
 			mapState.value = data.map
 			playerState.value = data.players
+			let sending = true
+
 			document.addEventListener('keydown', keyDownHandler)
 			document.addEventListener('keyup', keyUpHandler)
+
+			setInterval(() => {
+				if (activeKeys.size > 0) {
+					socket.send(JSON.stringify({ type: 'keydown', keys: Array.from(activeKeys) }))
+					sending = true
+				} else {
+					if (sending) {
+						socket.send(JSON.stringify({ type: 'keyup', keys: [] }))
+						sending = false
+					}
+				}
+			}, 50)
 			break
 		case 'game_over':
 			document.removeEventListener('keydown', keyDownHandler)
@@ -168,9 +206,7 @@ socket.onmessage = (e) => {
 
 	gameloop(data.type)
 }
-
 let activeKeys = new Set()
-
 function keyDownHandler(e) {
 	const keyDown = e.key.toLowerCase()
 	if (!'wsad '.includes(keyDown)) return
@@ -182,16 +218,3 @@ function keyUpHandler(e) {
 	if (!'wsad '.includes(keyUp)) return
 	activeKeys.delete(keyUp)
 }
-
-let sending = true
-setInterval(() => {
-	if (activeKeys.size > 0) {
-		socket.send(JSON.stringify({ type: 'keydown', keys: Array.from(activeKeys) }))
-		sending = true
-	} else {
-		if (sending) {
-			socket.send(JSON.stringify({ type: 'keyup', keys: [] }))
-			sending = false
-		}
-	}
-}, 50)

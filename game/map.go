@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -18,6 +19,7 @@ const (
 
 func CreateMap() [][]string {
 	rows, cols := 13, 19
+	centerRow, centerCol := rows/2, cols/2
 	board := make([][]string, rows)
 	for i := range board {
 		board[i] = make([]string, cols)
@@ -66,7 +68,12 @@ func CreateMap() [][]string {
 					(i == rows-2 && j == cols-1) {
 					continue
 				}
-				if rand.Float32() < 0.8 {
+
+				distance := math.Abs(float64(i-centerRow)) + math.Abs(float64(j-centerCol))
+
+				probability := 0.6 + 0.01*distance
+
+				if rand.Float32() < float32(probability) {
 					board[i][j] = Block
 				}
 			}
