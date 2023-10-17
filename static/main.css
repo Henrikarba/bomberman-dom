@@ -4,11 +4,9 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	overflow: hidden;
 }
 
 #app {
-	background-color: rgb(77, 77, 77);
 	display: flex;
 	height: 100vh;
 	justify-content: center;
@@ -20,19 +18,10 @@
 	position: relative;
 }
 
-#menu {
-	font-size: 30px;
-	display: flex;
-	flex-direction: column;
-	text-align: center;
-}
-
-input,
-button {
-	width: 200px;
-	height: 30px;
-	padding: 5px;
-	text-align: center;
+@media only screen and (max-height: 1080px) {
+	#game {
+		scale: 0.8;
+	}
 }
 
 .flex {
@@ -87,15 +76,34 @@ button {
 	background-position: 0 0;
 }
 
-.power {
+.power1 {
 	position: absolute;
 	width: 64px;
 	height: 64px;
-	background-image: url('./assets/powerup.png');
-	background-position: 0 0;
+	background-image: url('./assets/powerup1.png');
+}
+
+.power2 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/powerup2.png');
+}
+
+.power3 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/powerup3.png');
 }
 
 #player1 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	border: 1px solid green;
+	background-position: 0 0;
 	position: absolute;
 	width: 64px;
 	height: 64px;
@@ -111,6 +119,11 @@ button {
 	height: 64px;
 	background-image: url('./assets/player-sprite-sheet1.png');
 	background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
 	z-index: 1;
 }
 
@@ -120,10 +133,20 @@ button {
 	height: 64px;
 	background-image: url('./assets/player-sprite-sheet1.png');
 	background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
 	z-index: 1;
 }
 
 #player4 {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
 	position: absolute;
 	width: 64px;
 	height: 64px;
