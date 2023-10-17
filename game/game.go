@@ -41,19 +41,22 @@ func ClearPowerup(x int, y int, gameboard [][]string, mapUpdateChannel chan<- []
 }
 
 func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
-	blockUpdate := []BlockUpdate{
-		{
-			X:     x,
-			Y:     y,
-			Block: "B",
-		},
+	blockType := gameboard[y][x]
+	if blockType != Bomb {
+		blockUpdate := []BlockUpdate{
+			{
+				X:     x,
+				Y:     y,
+				Block: "B",
+			},
+		}
+
+		mapUpdateChannel <- blockUpdate
+
+		go time.AfterFunc(3*time.Second, func() {
+			handleExplosion(x, y, fireDistance, gameboard, mapUpdateChannel)
+		})
 	}
-
-	mapUpdateChannel <- blockUpdate
-
-	go time.AfterFunc(3*time.Second, func() {
-		handleExplosion(x, y, fireDistance, gameboard, mapUpdateChannel)
-	})
 }
 
 func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
@@ -95,6 +98,7 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 					gameboard[newY][newX] = Power3
 				} else {
 					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
+					gameboard[newY][newX] = Flame
 				}
 				break
 			} else {
