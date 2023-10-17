@@ -144,26 +144,18 @@ func (s *Server) HandleKeyPress() {
 							// fmt.Println("Hit another player")
 						} else if typeof == "Wall" || typeof == "Bomb" {
 							// fmt.Println("Hit a wall or a bomb")
-						} else if typeof == "f" {
+						} else if typeof == "f" && !s.Game.Players[i].Damaged {
 							fmt.Println("Hit flame, -1 life")
 							s.Game.Players[i].Lives--
-							s.Game.Players[i].Damaged = true
-							go func() {
-								time.Sleep(2 * time.Second)
-								s.Game.Players[i].Damaged = false
-							}()
+							s.HandleDamage(i)
 							s.MovePlayer(i, newX, newY, &shouldUpdate)
 							if s.Game.Players[i].Lives <= 0 {
 								s.lostGame(s.Game.Players[i])
 							}
-						} else if typeof == "ex" {
+						} else if typeof == "ex" && !s.Game.Players[i].Damaged {
 							fmt.Println("Hit explosion, -1 life")
 							s.Game.Players[i].Lives--
-							s.Game.Players[i].Damaged = true
-							go func() {
-								time.Sleep(2 * time.Second)
-								s.Game.Players[i].Damaged = false
-							}()
+							s.HandleDamage(i)
 							s.MovePlayer(i, newX, newY, &shouldUpdate)
 							if s.Game.Players[i].Lives <= 0 {
 								s.lostGame(s.Game.Players[i])
@@ -204,6 +196,14 @@ func (s *Server) MovePlayer(i, newX, newY int, shouldUpdate *bool) {
 	*shouldUpdate = true
 }
 
+func (s *Server) HandleDamage(i int) {
+	s.Game.Players[i].Damaged = true
+	go func() {
+		time.Sleep(2 * time.Second)
+		s.Game.Players[i].Damaged = false
+	}()
+}
+
 func (s *Server) UpdateGameState() {
 	data := game.GameState{}
 	for {
@@ -220,16 +220,14 @@ func (s *Server) UpdateGameState() {
 				// Check for player hits
 				if update.Block == "f" || update.Block == "ex" {
 					for i, player := range s.Game.Players {
-						if player.X == update.X && player.Y == update.Y {
-							s.Game.Players[i].Lives--
-							s.Game.Players[i].Damaged = true
-							go func() {
-								time.Sleep(2 * time.Second)
-								s.Game.Players[i].Damaged = false
-							}()
-							s.playerUpdateChannel <- s.Game.Players
-							if s.Game.Players[i].Lives <= 0 {
-								s.lostGame(s.Game.Players[i])
+						if s.Game.Players[i].Lives > 0 {
+							if player.X == update.X && player.Y == update.Y && !s.Game.Players[i].Damaged {
+								s.Game.Players[i].Lives--
+								s.HandleDamage(i)
+								s.playerUpdateChannel <- s.Game.Players
+								if s.Game.Players[i].Lives <= 0 {
+									s.lostGame(s.Game.Players[i])
+								}
 							}
 						}
 					}

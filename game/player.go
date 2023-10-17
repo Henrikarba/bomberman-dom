@@ -33,6 +33,7 @@ func NewPlayer(id int, gameboard [][]string, name string) *Player {
 		AvailableBombs: 1,
 		FireDistance:   2,
 		Lives:          3,
+		Damaged:        false,
 	}
 	rows := len(gameboard)
 	cols := len(gameboard[0])

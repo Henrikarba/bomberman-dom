@@ -40,7 +40,6 @@ function gameloop(updateType) {
 					gameboard.appendChild(bomb)
 				}
 				if (update.block == 'ex') {
-					console.log("test")
 					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveBomb) {
 						RemoveBomb.remove()
@@ -111,7 +110,6 @@ function gameloop(updateType) {
 
 	function updatePlayerPosition(gameboard) {
 		playerState.value.forEach((player) => {
-			console.log("here", player)
 			let playerElement = playerElements[player.id]
 			if (!playerElement && player.lives > 0) {
 				playerElement = Player(player)
