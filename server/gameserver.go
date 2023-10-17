@@ -147,6 +147,11 @@ func (s *Server) HandleKeyPress() {
 						} else if typeof == "f" {
 							fmt.Println("Hit flame, -1 life")
 							s.Game.Players[i].Lives--
+							s.Game.Players[i].Damaged = true
+							go func() {
+								time.Sleep(2 * time.Second)
+								s.Game.Players[i].Damaged = false
+							}()
 							s.MovePlayer(i, newX, newY, &shouldUpdate)
 							if s.Game.Players[i].Lives <= 0 {
 								s.lostGame(s.Game.Players[i])
@@ -154,6 +159,11 @@ func (s *Server) HandleKeyPress() {
 						} else if typeof == "ex" {
 							fmt.Println("Hit explosion, -1 life")
 							s.Game.Players[i].Lives--
+							s.Game.Players[i].Damaged = true
+							go func() {
+								time.Sleep(2 * time.Second)
+								s.Game.Players[i].Damaged = false
+							}()
 							s.MovePlayer(i, newX, newY, &shouldUpdate)
 							if s.Game.Players[i].Lives <= 0 {
 								s.lostGame(s.Game.Players[i])
@@ -212,6 +222,11 @@ func (s *Server) UpdateGameState() {
 					for i, player := range s.Game.Players {
 						if player.X == update.X && player.Y == update.Y {
 							s.Game.Players[i].Lives--
+							s.Game.Players[i].Damaged = true
+							go func() {
+								time.Sleep(2 * time.Second)
+								s.Game.Players[i].Damaged = false
+							}()
 							s.playerUpdateChannel <- s.Game.Players
 							if s.Game.Players[i].Lives <= 0 {
 								s.lostGame(s.Game.Players[i])

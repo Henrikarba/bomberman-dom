@@ -21,6 +21,7 @@ type Player struct {
 	AvailableBombs int       `json:"bombs,omitempty"`
 	FireDistance   int       `json:"-"`
 	Lives          int       `json:"lives"`
+	Damaged        bool      `json:"damaged"`
 	// PowerUps       []PowerUp
 }
 

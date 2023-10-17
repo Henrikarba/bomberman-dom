@@ -131,3 +131,7 @@
   background-image: url("./assets/player-sprite-sheet1.png");
   background-position: 0 0;
 }
+
+.damaged {
+  opacity: 0.5;
+}
