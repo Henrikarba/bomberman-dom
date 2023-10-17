@@ -156,9 +156,9 @@ func (s *Server) HandleKeyPress() {
 						(s.Game.Players)[i].AvailableBombs++
 						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					} else if typeof == "p2" {
-						fmt.Println("+ 50 speed")
+						fmt.Println("+ 100 speed")
 						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
-						(s.Game.Players)[i].Speed += 50
+						(s.Game.Players)[i].Speed += 100
 						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					} else if typeof == "p3" {
 						fmt.Println("+ 1 range")

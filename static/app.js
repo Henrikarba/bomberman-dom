@@ -40,6 +40,7 @@ function gameloop(updateType) {
 					gameboard.appendChild(bomb)
 				}
 				if (update.block == 'ex') {
+					console.log("test")
 					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveBomb) {
 						RemoveBomb.remove()
@@ -68,7 +69,7 @@ function gameloop(updateType) {
 					if (RemovePower3) {
 						RemovePower3.remove()
 					}
-					const RemoveFlame = document.querySelector(`.flame[x="${update.x}"][y="${update.y}"]`)
+					const RemoveFlame = document.querySelector(`.explosion[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveFlame) {
 						RemoveFlame.remove()
 					}
@@ -173,7 +174,7 @@ function gameloop(updateType) {
 
 	function createFlameElement(x, y) {
 		return mini.div({
-			class: 'flame',
+			class: 'explosion',
 			style: `left: ${x * 64}px; top: ${y * 64}px`,
 			x: x,
 			y: y,

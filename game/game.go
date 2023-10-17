@@ -53,7 +53,7 @@ func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateCh
 
 		mapUpdateChannel <- blockUpdate
 
-		go time.AfterFunc(3*time.Second, func() {
+		go time.AfterFunc(2*time.Second, func() {
 			handleExplosion(x, y, fireDistance, gameboard, mapUpdateChannel)
 		})
 	}
