@@ -20,13 +20,21 @@ type BlockUpdate struct {
 	Block string `json:"block"`
 }
 
-func AddPoweup() bool {
-	randomNumber := rand.Intn(2) + 1
-	return randomNumber == 1
+func AddPoweup() int {
+	randomNumber := rand.Intn(3) + 1
+	return randomNumber
 }
 
-func MovePlayer() {
+func ClearPowerup(x int, y int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
+	blockUpdate := []BlockUpdate{
+		{
+			X:     x,
+			Y:     y,
+			Block: "e",
+		},
+	}
 
+	mapUpdateChannel <- blockUpdate
 }
 
 func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
@@ -69,11 +77,22 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 
 			// Check block type
 			blockType := gameboard[newY][newX]
-			if blockType == Wall || blockType == Flame {
+			if blockType == Wall {
 				break
 			} else if blockType == Block {
-				blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
-				gameboard[newY][newX] = Flame
+				test := AddPoweup()
+				if test == 1 {
+					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Power1})
+					gameboard[newY][newX] = Power1
+				} else if test == 2 {
+					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Power2})
+					gameboard[newY][newX] = Power2
+				} else if test == 3 {
+					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Power3})
+					gameboard[newY][newX] = Power3
+				} else {
+					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Flame})
+				}
 				break
 			} else {
 				// Empty or already on fire, propagate flame
@@ -93,7 +112,9 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 func clearExplosion(blockUpdates []BlockUpdate, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {
 	clearUpdates := make([]BlockUpdate, len(blockUpdates))
 	for i, update := range blockUpdates {
-		clearUpdates[i] = BlockUpdate{X: update.X, Y: update.Y, Block: "e"}
+		if update == (BlockUpdate{X: update.X, Y: update.Y, Block: "f"}) || update == (BlockUpdate{X: update.X, Y: update.Y, Block: "ex"}) {
+			clearUpdates[i] = BlockUpdate{X: update.X, Y: update.Y, Block: "e"}
+		}
 	}
 	mapUpdateChannel <- clearUpdates
 }

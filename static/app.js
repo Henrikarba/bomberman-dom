@@ -50,9 +50,17 @@ function gameloop(updateType) {
 					if (changeCell) {
 						changeCell.className = "cell"
 					}
-					const RemovePower = document.querySelector(`.power[x="${update.x}"][y="${update.y}"]`);
-					if (RemovePower) {
-						RemovePower.remove();
+					const RemovePower1 = document.querySelector(`.power1[x="${update.x}"][y="${update.y}"]`);
+					if (RemovePower1) {
+						RemovePower1.remove();
+					}
+					const RemovePower2 = document.querySelector(`.power2[x="${update.x}"][y="${update.y}"]`);
+					if (RemovePower2) {
+						RemovePower2.remove();
+					}
+					const RemovePower3 = document.querySelector(`.power3[x="${update.x}"][y="${update.y}"]`);
+					if (RemovePower3) {
+						RemovePower3.remove();
 					}
 					const RemoveFlame = document.querySelector(`.flame[x="${update.x}"][y="${update.y}"]`);
 					if (RemoveFlame) {
@@ -63,12 +71,30 @@ function gameloop(updateType) {
 						RemoveExplosion.remove();
 					}
 				}
-				if (update.block == 'p') {
+				if (update.block == 'p1') {
 					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
 					if (changeCell) {
 						changeCell.className = "cell"
 					}
-					const power = createPowerElement(update.x, update.y)
+					const power = createPowerElement(update.x, update.y, 1)
+					gameboard.appendChild(power)
+					console.log(power)
+				}
+				if (update.block == 'p2') {
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
+					if (changeCell) {
+						changeCell.className = "cell"
+					}
+					const power = createPowerElement(update.x, update.y, 2)
+					gameboard.appendChild(power)
+					console.log(power)
+				}
+				if (update.block == 'p3') {
+					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`);
+					if (changeCell) {
+						changeCell.className = "cell"
+					}
+					const power = createPowerElement(update.x, update.y, 3)
 					gameboard.appendChild(power)
 					console.log(power)
 				}
@@ -94,10 +120,22 @@ function gameloop(updateType) {
 		})
 	}
 
-	function createPowerElement(x, y) {
-		return mini.div({
-			class: 'power', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
-		})
+	function createPowerElement(x, y, power) {
+		let powerElement
+		if (power === 1) {
+			powerElement = mini.div({
+				class: 'power1', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			})
+		} else if (power === 2) {
+			powerElement = mini.div({
+				class: 'power2', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			})
+		} else if (power === 3) {
+			powerElement = mini.div({
+				class: 'power3', style: `left: ${x * 64}px; top: ${y * 64}px`, x: x, y: y
+			})
+		}
+		return powerElement
 	}
 
 	function createBombElement(x, y) {

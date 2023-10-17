@@ -136,14 +136,21 @@ func (s *Server) HandleKeyPress() {
 						fmt.Println("Hit explosion, -1 life")
 						(s.Game.Players)[i].Lives--
 						s.MovePlayer(i, newX, newY, &shouldUpdate)
-					} else if typeof == "p" {
-						// fmt.Println("+ 1 bomb")
-						// s.BlockUpdate = &[]BlockUpdate{}
-						// (*s.Map)[newY][newX] = "e"
-						// *s.BlockUpdate = append(*s.BlockUpdate, BlockUpdate{X: newX, Y: newY, Block: "e"})
-						// updateChannel <- "map_state_update"
-						// (*s.Players)[i].AvailableBombs++
-						// MovePlayer(newX, newY)
+					} else if typeof == "p1" {
+						fmt.Println("+ 1 bomb")
+						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+						(s.Game.Players)[i].AvailableBombs++
+						s.MovePlayer(i, newX, newY, &shouldUpdate)
+					} else if typeof == "p2" {
+						fmt.Println("+ 50 speed")
+						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+						(s.Game.Players)[i].Speed += 50
+						s.MovePlayer(i, newX, newY, &shouldUpdate)
+					} else if typeof == "p3" {
+						fmt.Println("+ 1 range")
+						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+						(s.Game.Players)[i].FireDistance++
+						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					}
 				} else {
 					s.MovePlayer(i, newX, newY, &shouldUpdate)
