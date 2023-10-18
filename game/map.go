@@ -102,7 +102,7 @@ func IsCollision(gameboard [][]string, x, y int, players []Player, currentPlayer
 		return true, "Wall"
 	}
 	for _, player := range players {
-		if player.ID != currentPlayerID && player.X == x && player.Y == y {
+		if player.ID != currentPlayerID && player.X == x && player.Y == y && player.Lives > 0 {
 			return true, "Player"
 		}
 	}

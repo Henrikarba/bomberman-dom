@@ -15,32 +15,27 @@ const Player = (player) => {
 		const currentTime = performance.now()
 		if (currentTime - lastUpdateTime < animationDelay) return
 		lastUpdateTime = currentTime
-		let rowIndex
 		switch (direction) {
 			case 'up':
-				rowIndex = 4
+				frameIndex = 2
 				break
 			case 'down':
-				rowIndex = 5
+				frameIndex = 1
 				break
 			case 'left':
-				rowIndex = 0
+				frameIndex = 0
 				break
 			case 'right':
-				rowIndex = 1
+				frameIndex = 3
 				break
 			default:
-				rowIndex = 0
+				frameIndex = 1
 		}
-
-		const frameCount = 4
 		const frameWidth = 64
-		const frameHeight = 64
 		const xOffset = frameIndex * -frameWidth
-		const yOffset = rowIndex * -frameHeight
+		console.log(xOffset, frameIndex, direction)
 
-		sprite.style.backgroundPosition = `${xOffset}px ${yOffset}px`
-		frameIndex = (frameIndex + 1) % frameCount
+		sprite.style.backgroundPosition = `${xOffset}px 0`
 	}
 
 	const position = mini.createState({})
