@@ -146,6 +146,7 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 			log.Println("Error unmarshaling to RegisterMessage:", err)
 			return
 		}
+		s.Conns[playerID].WriteJSON(MessageType{Type: "playerID", Message: fmt.Sprintf("%d", playerID)})
 		s.Game.PlayerCount++
 		s.playerCountChannel <- registerMsg
 	}

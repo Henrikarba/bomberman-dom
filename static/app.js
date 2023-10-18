@@ -19,6 +19,7 @@ let info = undefined
 let chat = undefined
 const playerElements = {}
 let playerCount = 0
+let playerID
 
 function gameloop(updateType) {
 	switch (updateType) {
@@ -115,7 +116,16 @@ function gameloop(updateType) {
 
 	function updatePlayerPosition(gameboard) {
 		playerState.value.forEach((player) => {
+			if (playerID == player.id) {
+				let hearts = ``
+				for (let i = 1; i <= player.lives; i++) {
+					hearts += `<div class="heart"></div>`
+				}
+				info.innerHTML = "Lives: " + hearts
+			}
+
 			let playerElement = playerElements[player.id]
+
 			if (!playerElement && player.lives > 0) {
 				playerElement = Player(player)
 				playerElements[player.id] = playerElement
@@ -226,6 +236,9 @@ socket.onmessage = (e) => {
 	const data = JSON.parse(e.data)
 	console.log(data)
 	switch (data.type) {
+		case 'playerID':
+			playerID = data.message
+			break
 		case 'status':
 			playerCount = data.player_count
 			break
@@ -257,7 +270,6 @@ socket.onmessage = (e) => {
 			document.removeEventListener('keyup', keyUpHandler)
 			break
 		case 'player_state_update':
-			info.innerHTML = `Lives: ${data.players}`
 			playerState.value = data.players
 			break
 		case 'map_state_update':
