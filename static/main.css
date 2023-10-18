@@ -98,8 +98,30 @@
 	position: absolute;
 	width: 64px;
 	height: 64px;
-	background-image: url('./assets/bomb64.png');
 	background-position: 0 0;
+
+	animation: bomb 2s linear;
+}
+
+@keyframes bomb {
+	0% {
+		background-image: url('./assets/tile079.png');
+	}
+	20% {
+		background-image: url('./assets/tile080.png');
+	}
+	40% {
+		background-image: url('./assets/tile081.png');
+	}
+	60% {
+		background-image: url('./assets/tile082.png');
+	}
+	80% {
+		background-image: url('./assets/tile083.png');
+	}
+	100% {
+		background-image: url('./assets/tile084.png');
+	}
 }
 
 .explosion {
