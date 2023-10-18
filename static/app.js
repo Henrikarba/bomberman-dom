@@ -25,11 +25,21 @@ function gameloop(updateType) {
 			break
 		case 'new_game':
 			if (!gameboard) gameboard = drawGameboard(mapState.value)
+			const display = mini.div({ class: 'display' })
+			const game = mini.div({ class: 'game' })
+			const info = mini.div({ class: 'info' },
+				mini.p({
+					class: 'infoText',
+				}, `Lives:`)
+			)
+			game.appendChild(info)
+			game.appendChild(gameboard)
+			display.appendChild(game)
+			const chat = mini.div({ class: 'chat' }, "test")
+			display.appendChild(chat)
 			updatePlayerPosition(gameboard)
-			mini.render(app, gameboard)
-
+			mini.render(app, display)
 			break
-
 		case 'player_state_update':
 			updatePlayerPosition(gameboard)
 			break
@@ -84,7 +94,6 @@ function gameloop(updateType) {
 					}
 					const power = createPowerElement(update.x, update.y, 1)
 					gameboard.appendChild(power)
-					console.log(power)
 				}
 				if (update.block == 'p2') {
 					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`)
@@ -93,7 +102,6 @@ function gameloop(updateType) {
 					}
 					const power = createPowerElement(update.x, update.y, 2)
 					gameboard.appendChild(power)
-					console.log(power)
 				}
 				if (update.block == 'p3') {
 					const changeCell = document.querySelector(`.destroyable[data-row="${update.y}"][data-cell="${update.x}"]`)
@@ -102,7 +110,6 @@ function gameloop(updateType) {
 					}
 					const power = createPowerElement(update.x, update.y, 3)
 					gameboard.appendChild(power)
-					console.log(power)
 				}
 			})
 			break

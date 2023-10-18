@@ -21,10 +21,36 @@
   height: 832px;
 }
 
+.chat {
+  margin-top: 2rem;
+  margin-left: 1rem;
+  width: 10rem;
+  height: 832px;
+  background-color: gray;
+}
+
+.info {
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.infoText {
+}
+
 @media (max-height: 849px) {
-  #game {
+  #game,
+  .chat,
+  .info {
     transform: scale(0.8);
   }
+  .chat {
+    margin-left: 0.5rem;
+  }
+}
+
+.display {
+  display: flex;
+  flex-direction: row;
 }
 
 .cell {
