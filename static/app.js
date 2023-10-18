@@ -119,7 +119,7 @@ function gameloop(updateType) {
 
 			if (player.lives <= 0) {
 				let removePlayer = document.getElementById(`player${player.id}`)
-				removePlayer.style.display = "none"
+				removePlayer.style.display = 'none'
 			}
 
 			if (playerElement) {
@@ -128,10 +128,10 @@ function gameloop(updateType) {
 				sprite.style.left = player.x * 64 + 'px'
 				sprite.style.top = player.y * 64 + 'px'
 				if (player.damaged) {
-					sprite.classList.add('damaged');
+					sprite.classList.add('damaged')
 					setTimeout(() => {
-						sprite.classList.remove('damaged');
-					}, 2000);
+						sprite.classList.remove('damaged')
+					}, 2000)
 				}
 			}
 		})

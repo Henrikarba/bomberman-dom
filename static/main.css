@@ -15,8 +15,57 @@
 }
 
 #game {
-  transform: scale(0.8);
+  transform: scale(1);
   position: relative;
+  width: 1216px;
+  height: 832px;
+}
+
+@media (max-height: 849px) {
+  #game {
+    transform: scale(0.8);
+  }
+}
+
+.cell {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  background-image: url("assets/Grass_Tile_lower.png");
+  background-size: contain;
+}
+
+.row:first-child .cell {
+  background-image: url("assets/Grass_Tile_Flat.png");
+}
+
+.cell[data-row="12"] {
+  background-image: url("assets/Grass_Tile_Flat.png");
+  transform: rotate(180deg);
+}
+
+.row .cell:last-child {
+  background-image: url("assets/Grass_Tile_Flat_r.png");
+}
+
+.row:first-child .cell:first-child {
+  background-image: url("assets/Grass_Tile_Corner_Edge_l.png");
+}
+
+.row:first-child .cell:last-child {
+  background-image: url("assets/Grass_Tile_Corner_Edge_r.png");
+}
+
+.row .cell:first-child {
+  background-image: url("assets/Grass_Tile_Flat_l.png");
+}
+
+.cell[data-row="12"][data-cell="0"] {
+  background-image: url("assets/Grass_Tile_Corner_Edge_r.png");
+}
+
+.cell[data-row="12"][data-cell="18"] {
+  background-image: url("assets/Grass_Tile_Corner_Edge_l.png");
 }
 
 .flex {
@@ -26,22 +75,23 @@
 .cell {
   width: 64px;
   height: 64px;
-  background-color: greenyellow;
-  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wall {
   width: 64px;
   height: 64px;
+  background-color: black;
   background-image: url("./assets/EmptyBlock.png");
-  border: none;
 }
 
 .destroyable {
   width: 64px;
   height: 64px;
   background-image: url("./assets/BrickBlock.png");
-  border: none;
 }
 
 .bomb {
@@ -58,6 +108,7 @@
   height: 64px;
   background-image: url("./assets/explode.png");
   animation: explode 1s steps(6);
+  z-index: 4;
 }
 
 @keyframes explode {
@@ -66,7 +117,7 @@
   }
   100% {
     background-position: -384px 0;
-  } /* Adjust this based on your frame sheet */
+  }
 }
 
 .power1 {
@@ -74,6 +125,7 @@
   width: 64px;
   height: 64px;
   background-image: url("./assets/powerup1.png");
+  z-index: 1;
 }
 
 .power2 {
@@ -81,6 +133,7 @@
   width: 64px;
   height: 64px;
   background-image: url("./assets/powerup2.png");
+  z-index: 1;
 }
 
 .power3 {
@@ -88,6 +141,7 @@
   width: 64px;
   height: 64px;
   background-image: url("./assets/powerup3.png");
+  z-index: 1;
 }
 
 #player1 {
@@ -96,7 +150,7 @@
   height: 64px;
   background-image: url("./assets/player1.png");
   background-position: 0 0;
-  z-index: 1;
+  z-index: 2;
 }
 
 #player2 {
@@ -105,7 +159,7 @@
   height: 64px;
   background-image: url("./assets/player2.png");
   background-position: 0 0;
-  z-index: 1;
+  z-index: 2;
 }
 
 #player3 {
@@ -114,7 +168,7 @@
   height: 64px;
   background-image: url("./assets/player3.png");
   background-position: 0 0;
-  z-index: 1;
+  z-index: 2;
 }
 
 #player4 {
@@ -123,9 +177,37 @@
   height: 64px;
   background-image: url("./assets/player4.png");
   background-position: 0 0;
-  z-index: 1;
+  z-index: 2;
 }
 
 .damaged {
-  opacity: 0.5;
+  animation: invulnerability 2s steps(10, end);
+}
+
+@keyframes invulnerability {
+  0%,
+  10%,
+  20%,
+  30%,
+  40%,
+  50%,
+  60%,
+  70%,
+  80%,
+  90%,
+  100% {
+    opacity: 0;
+  }
+
+  5%,
+  15%,
+  25%,
+  35%,
+  45%,
+  55%,
+  65%,
+  75%,
+  85% {
+    opacity: 100;
+  }
 }
