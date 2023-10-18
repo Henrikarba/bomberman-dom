@@ -33,7 +33,6 @@ const Player = (player) => {
 		}
 		const frameWidth = 64
 		const xOffset = frameIndex * -frameWidth
-		console.log(xOffset, frameIndex, direction)
 
 		sprite.style.backgroundPosition = `${xOffset}px 0`
 	}
