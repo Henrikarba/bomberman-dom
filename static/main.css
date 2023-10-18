@@ -1,133 +1,173 @@
 *,
 *:before,
 *:after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
 #app {
-  display: flex;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-  background-color: rgb(66, 66, 66);
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	align-items: center;
+	background-color: rgb(66, 66, 66);
 }
 
 #game {
-  transform: scale(0.8);
-  position: relative;
-}
-
-.flex {
-  display: flex;
+	transform: scale(0.8);
+	position: relative;
+	width: 1216px;
+	height: 832px;
 }
 
 .cell {
-  width: 64px;
-  height: 64px;
-  background-color: red;
-  border: 1px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	width: 64px;
+	height: 64px;
+	display: flex;
+	background-image: url('assets/Grass_Tile_lower.png');
+	background-size: contain;
+}
+
+.row:first-child .cell {
+	background-image: url('assets/Grass_Tile_Flat.png');
+}
+
+.cell[data-row='12'] {
+	background-image: url('assets/Grass_Tile_Flat.png');
+	transform: rotate(180deg);
+}
+
+.row .cell:last-child {
+	background-image: url('assets/Grass_Tile_Flat_r.png');
+}
+
+.row:first-child .cell:first-child {
+	background-image: url('assets/Grass_Tile_Corner_Edge_l.png');
+}
+
+.row:first-child .cell:last-child {
+	background-image: url('assets/Grass_Tile_Corner_Edge_r.png');
+}
+
+.row .cell:first-child {
+	background-image: url('assets/Grass_Tile_Flat_l.png');
+}
+
+.cell[data-row='12'][data-cell='0'] {
+	background-image: url('assets/Grass_Tile_Corner_Edge_r.png');
+}
+
+.cell[data-row='12'][data-cell='18'] {
+	background-image: url('assets/Grass_Tile_Corner_Edge_l.png');
+}
+
+.flex {
+	display: flex;
 }
 
 .wall {
-  width: 64px;
-  height: 64px;
-  background-color: black;
-  border: 1px solid black;
+	width: 64px;
+	height: 64px;
+	background-color: black;
+	border: 1px solid black;
 }
 
 .destroyable {
-  width: 64px;
-  height: 64px;
-  background-color: orange;
-  border: 1px solid rgb(0, 255, 13);
+	width: 64px;
+	height: 64px;
+	background-image: url('assets/destroyable.png');
+	background-size: contain;
 }
 
 .bomb {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/bomb64.png");
-  background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/bomb64.png');
+	background-position: 0 0;
+	z-index: 2;
 }
 
 .explosion {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/explode.png");
-  animation: explode 1s steps(6);
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/explode.png');
+	animation: explode 1s steps(6);
+	z-index: 2;
 }
 
 @keyframes explode {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: -384px 0;
-  } /* Adjust this based on your frame sheet */
+	0% {
+		background-position: 0 0;
+	}
+	100% {
+		background-position: -384px 0;
+	}
 }
 
 .power1 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/powerup1.png");
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/powerup1.png');
+	z-index: 1;
 }
 
 .power2 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/powerup2.png");
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/powerup2.png');
+	z-index: 1;
 }
 
 .power3 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/powerup3.png");
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/powerup3.png');
+	z-index: 1;
 }
 
 #player1 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
-  border: 1px solid green;
-  background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+	z-index: 10;
 }
 
 #player2 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
-  background-position: 0 0;
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
-  background-position: 0 0;
-  z-index: 1;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+	z-index: 10;
 }
 
 #player3 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
-  background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+	z-index: 10;
 }
 
 #player4 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
-  background-position: 0 0;
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	background-image: url('./assets/player-sprite-sheet1.png');
+	background-position: 0 0;
+	z-index: 10;
 }

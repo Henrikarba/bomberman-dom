@@ -40,7 +40,7 @@ function gameloop(updateType) {
 					gameboard.appendChild(bomb)
 				}
 				if (update.block == 'ex') {
-					console.log("test")
+					console.log('test')
 					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveBomb) {
 						RemoveBomb.remove()
