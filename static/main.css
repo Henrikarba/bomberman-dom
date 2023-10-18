@@ -26,25 +26,22 @@
 .cell {
   width: 64px;
   height: 64px;
-  background-color: red;
-  border: 1px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: greenyellow;
+  border: none;
 }
 
 .wall {
   width: 64px;
   height: 64px;
-  background-color: black;
-  border: 1px solid black;
+  background-image: url("./assets/EmptyBlock.png");
+  border: none;
 }
 
 .destroyable {
   width: 64px;
   height: 64px;
-  background-color: orange;
-  border: 1px solid rgb(0, 255, 13);
+  background-image: url("./assets/BrickBlock.png");
+  border: none;
 }
 
 .bomb {
@@ -98,16 +95,11 @@
   width: 64px;
   height: 64px;
   background-image: url("./assets/player-sprite-sheet1.png");
-  border: 1px solid green;
   background-position: 0 0;
+  z-index: 1;
 }
 
 #player2 {
-  position: absolute;
-  width: 64px;
-  height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
-  background-position: 0 0;
   position: absolute;
   width: 64px;
   height: 64px;
@@ -122,6 +114,7 @@
   height: 64px;
   background-image: url("./assets/player-sprite-sheet1.png");
   background-position: 0 0;
+  z-index: 1;
 }
 
 #player4 {
@@ -130,6 +123,7 @@
   height: 64px;
   background-image: url("./assets/player-sprite-sheet1.png");
   background-position: 0 0;
+  z-index: 1;
 }
 
 .damaged {
