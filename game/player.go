@@ -42,11 +42,11 @@ func NewPlayer(id int, gameboard [][]string, name string) *Player {
 	case 1:
 		player.X = 0
 		player.Y = 0
-		player.Direction = "right"
+		player.Direction = "down"
 	case 2:
 		player.X = cols - 1
 		player.Y = 0
-		player.Direction = "left"
+		player.Direction = "down"
 	case 3:
 		player.X = 0
 		player.Y = rows - 1

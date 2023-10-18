@@ -94,7 +94,7 @@
   position: absolute;
   width: 64px;
   height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
+  background-image: url("./assets/player1.png");
   background-position: 0 0;
   z-index: 1;
 }
@@ -103,7 +103,7 @@
   position: absolute;
   width: 64px;
   height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
+  background-image: url("./assets/player2.png");
   background-position: 0 0;
   z-index: 1;
 }
@@ -112,7 +112,7 @@
   position: absolute;
   width: 64px;
   height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
+  background-image: url("./assets/player3.png");
   background-position: 0 0;
   z-index: 1;
 }
@@ -121,7 +121,7 @@
   position: absolute;
   width: 64px;
   height: 64px;
-  background-image: url("./assets/player-sprite-sheet1.png");
+  background-image: url("./assets/player4.png");
   background-position: 0 0;
   z-index: 1;
 }
