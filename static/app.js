@@ -15,6 +15,8 @@ const mapState = mini.createState([])
 const playerState = mini.createState([])
 const blockUpdates = mini.createState([])
 let gameboard = undefined
+let info = undefined
+let chat = undefined
 const playerElements = {}
 let playerCount = 0
 
@@ -27,15 +29,11 @@ function gameloop(updateType) {
 			if (!gameboard) gameboard = drawGameboard(mapState.value)
 			const display = mini.div({ class: 'display' })
 			const game = mini.div({ class: 'game' })
-			const info = mini.div({ class: 'info' },
-				mini.p({
-					class: 'infoText',
-				}, `Lives:`)
-			)
+			info = mini.div({ class: 'info' })
 			game.appendChild(info)
 			game.appendChild(gameboard)
 			display.appendChild(game)
-			const chat = mini.div({ class: 'chat' }, "test")
+			chat = mini.div({ class: 'chat' })
 			display.appendChild(chat)
 			updatePlayerPosition(gameboard)
 			mini.render(app, display)
@@ -259,6 +257,7 @@ socket.onmessage = (e) => {
 			document.removeEventListener('keyup', keyUpHandler)
 			break
 		case 'player_state_update':
+			info.innerHTML = `Lives: ${data.players}`
 			playerState.value = data.players
 			break
 		case 'map_state_update':
