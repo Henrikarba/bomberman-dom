@@ -15,10 +15,16 @@
 }
 
 #game {
-	transform: scale(0.8);
+	transform: scale(1);
 	position: relative;
 	width: 1216px;
 	height: 832px;
+}
+
+@media (max-height: 849px) {
+	#game {
+		transform: scale(0.8);
+	}
 }
 
 .cell {
