@@ -232,9 +232,7 @@ func (s *Server) UpdateGameState() {
 						}
 					}
 				}
-				if update.Y != -300 && update.X != -300 {
-					s.Game.Map[update.Y][update.X] = update.Block
-				}
+				s.Game.Map[update.Y][update.X] = update.Block
 			}
 			s.gameMu.Unlock()
 

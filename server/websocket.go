@@ -85,10 +85,8 @@ func (s *Server) RemoveConn(userID int) {
 	for i := range s.Game.Players {
 		if s.Game.Players[i].ID == userID {
 			delete(s.Game.KeysPressed, userID)
-			s.Game.Players[i].X = -300
-			s.Game.Players[i].Y = -300
+			s.Game.Players[i].Lives = 0
 			s.playerUpdateChannel <- s.Game.Players
-			s.Game.Players = s.removePlayerByID(s.Game.Players, userID)
 			break
 		}
 	}
