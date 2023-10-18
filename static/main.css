@@ -66,18 +66,26 @@
 	display: flex;
 }
 
+.cell {
+	width: 64px;
+	height: 64px;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .wall {
 	width: 64px;
 	height: 64px;
 	background-color: black;
-	border: 1px solid black;
+	background-image: url('./assets/EmptyBlock.png');
 }
 
 .destroyable {
 	width: 64px;
 	height: 64px;
-	background-image: url('assets/destroyable.png');
-	background-size: contain;
+	background-image: url('./assets/BrickBlock.png');
 }
 
 .bomb {
@@ -86,7 +94,6 @@
 	height: 64px;
 	background-image: url('./assets/bomb64.png');
 	background-position: 0 0;
-	z-index: 2;
 }
 
 .explosion {
@@ -95,7 +102,7 @@
 	height: 64px;
 	background-image: url('./assets/explode.png');
 	animation: explode 1s steps(6);
-	z-index: 2;
+	z-index: 4;
 }
 
 @keyframes explode {
@@ -137,7 +144,7 @@
 	height: 64px;
 	background-image: url('./assets/player-sprite-sheet1.png');
 	background-position: 0 0;
-	z-index: 10;
+	z-index: 2;
 }
 
 #player2 {
@@ -146,12 +153,7 @@
 	height: 64px;
 	background-image: url('./assets/player-sprite-sheet1.png');
 	background-position: 0 0;
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/player-sprite-sheet1.png');
-	background-position: 0 0;
-	z-index: 10;
+	z-index: 2;
 }
 
 #player3 {
@@ -160,7 +162,7 @@
 	height: 64px;
 	background-image: url('./assets/player-sprite-sheet1.png');
 	background-position: 0 0;
-	z-index: 10;
+	z-index: 2;
 }
 
 #player4 {
@@ -169,5 +171,37 @@
 	height: 64px;
 	background-image: url('./assets/player-sprite-sheet1.png');
 	background-position: 0 0;
-	z-index: 10;
+	z-index: 2;
+}
+
+.damaged {
+	animation: invulnerability 2s steps(10, end);
+}
+
+@keyframes invulnerability {
+	0%,
+	10%,
+	20%,
+	30%,
+	40%,
+	50%,
+	60%,
+	70%,
+	80%,
+	90%,
+	100% {
+		opacity: 0;
+	}
+
+	5%,
+	15%,
+	25%,
+	35%,
+	45%,
+	55%,
+	65%,
+	75%,
+	85% {
+		opacity: 100;
+	}
 }

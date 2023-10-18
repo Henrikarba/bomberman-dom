@@ -93,83 +93,94 @@ func (s *Server) HandleKeyPress() {
 	shouldUpdate := false // Flag to check if update is needed
 	for i, player := range s.Game.Players {
 		if keys, ok := s.Game.KeysPressed[player.ID]; ok {
-			// Bomb plant
-			if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
-				s.gameMu.Lock()
-				(s.Game.Players)[i].AvailableBombs--
-				s.gameMu.Unlock()
-				bombX := (s.Game.Players)[i].X
-				bombY := (s.Game.Players)[i].Y
-				fireDistance := (s.Game.Players)[i].FireDistance
-				currentMap := s.Game.Map
-				go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
-				go func(playerID int) {
-					time.AfterFunc(3500*time.Millisecond, func() {
-						s.gameMu.Lock()
-						defer s.gameMu.Unlock()
+			if player.Lives > 0 {
 
-						for i := range s.Game.Players {
-							if s.Game.Players[i].ID == playerID {
-								s.Game.Players[i].AvailableBombs++
-								break
+				// Bomb plant
+				if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
+					s.gameMu.Lock()
+					s.Game.Players[i].AvailableBombs--
+					s.gameMu.Unlock()
+					bombX := s.Game.Players[i].X
+					bombY := s.Game.Players[i].Y
+					fireDistance := s.Game.Players[i].FireDistance
+					currentMap := s.Game.Map
+					go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
+					go func(playerID int) {
+						time.AfterFunc(3500*time.Millisecond, func() {
+							s.gameMu.Lock()
+							defer s.gameMu.Unlock()
+
+							for i := range s.Game.Players {
+								if s.Game.Players[i].ID == playerID {
+									s.Game.Players[i].AvailableBombs++
+									break
+								}
 							}
-						}
-					})
-				}(s.Game.Players[i].ID)
-			}
-
-			// Movement
-			if time.Since(player.LastMoveTime) >= time.Second*time.Duration(100)/time.Duration(player.Speed) {
-				newX, newY := player.X, player.Y
-				if keys["w"] {
-					newY -= 1
-					s.Game.Players[i].Direction = "up"
-				} else if keys["s"] {
-					newY += 1
-					s.Game.Players[i].Direction = "down"
-				} else if keys["a"] {
-					newX -= 1
-					s.Game.Players[i].Direction = "left"
-				} else if keys["d"] {
-					newX += 1
-					s.Game.Players[i].Direction = "right"
+						})
+					}(s.Game.Players[i].ID)
 				}
 
-				s.gameMu.Lock()
-				collision, typeof := game.IsCollision(s.Game.Map, newX, newY, s.Game.Players, player.ID)
-				if collision {
-					if typeof == "Player" {
-						// fmt.Println("Hit another player")
-					} else if typeof == "Wall" || typeof == "Bomb" {
-						// fmt.Println("Hit a wall or a bomb")
-					} else if typeof == "f" {
-						// fmt.Println("Hit flame, -1 life")
-						(s.Game.Players)[i].Lives--
-						s.MovePlayer(i, newX, newY, &shouldUpdate)
-					} else if typeof == "ex" {
-						// fmt.Println("Hit explosion, -1 life")
-						(s.Game.Players)[i].Lives--
-						s.MovePlayer(i, newX, newY, &shouldUpdate)
-					} else if typeof == "p1" {
-						fmt.Println("+ 1 bomb")
-						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
-						(s.Game.Players)[i].AvailableBombs++
-						s.MovePlayer(i, newX, newY, &shouldUpdate)
-					} else if typeof == "p2" {
-						fmt.Println("+ 100 speed")
-						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
-						(s.Game.Players)[i].Speed += 100
-						s.MovePlayer(i, newX, newY, &shouldUpdate)
-					} else if typeof == "p3" {
-						fmt.Println("+ 1 range")
-						go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
-						(s.Game.Players)[i].FireDistance++
+				// Movement
+				if time.Since(player.LastMoveTime) >= time.Second*time.Duration(100)/time.Duration(player.Speed) {
+					newX, newY := player.X, player.Y
+					if keys["w"] {
+						newY -= 1
+						s.Game.Players[i].Direction = "up"
+					} else if keys["s"] {
+						newY += 1
+						s.Game.Players[i].Direction = "down"
+					} else if keys["a"] {
+						newX -= 1
+						s.Game.Players[i].Direction = "left"
+					} else if keys["d"] {
+						newX += 1
+						s.Game.Players[i].Direction = "right"
+					}
+
+					s.gameMu.Lock()
+					collision, typeof := game.IsCollision(s.Game.Map, newX, newY, s.Game.Players, player.ID)
+					if collision {
+						if typeof == "Player" {
+							// fmt.Println("Hit another player")
+						} else if typeof == "Wall" || typeof == "Bomb" {
+							// fmt.Println("Hit a wall or a bomb")
+						} else if typeof == "f" && !s.Game.Players[i].Damaged {
+							fmt.Println("Hit flame, -1 life")
+							s.Game.Players[i].Lives--
+							s.HandleDamage(i)
+							s.MovePlayer(i, newX, newY, &shouldUpdate)
+							if s.Game.Players[i].Lives <= 0 {
+								s.lostGame(s.Game.Players[i])
+							}
+						} else if typeof == "ex" && !s.Game.Players[i].Damaged {
+							fmt.Println("Hit explosion, -1 life")
+							s.Game.Players[i].Lives--
+							s.HandleDamage(i)
+							s.MovePlayer(i, newX, newY, &shouldUpdate)
+							if s.Game.Players[i].Lives <= 0 {
+								s.lostGame(s.Game.Players[i])
+							}
+						} else if typeof == "p1" {
+							fmt.Println("+ 1 bomb")
+							go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+							s.Game.Players[i].AvailableBombs++
+							s.MovePlayer(i, newX, newY, &shouldUpdate)
+						} else if typeof == "p2" {
+							fmt.Println("+ 100 speed")
+							go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+							s.Game.Players[i].Speed += 100
+							s.MovePlayer(i, newX, newY, &shouldUpdate)
+						} else if typeof == "p3" {
+							fmt.Println("+ 1 range")
+							go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+							s.Game.Players[i].FireDistance++
+							s.MovePlayer(i, newX, newY, &shouldUpdate)
+						}
+					} else {
 						s.MovePlayer(i, newX, newY, &shouldUpdate)
 					}
-				} else {
-					s.MovePlayer(i, newX, newY, &shouldUpdate)
+					s.gameMu.Unlock()
 				}
-				s.gameMu.Unlock()
 			}
 		}
 	}
@@ -183,6 +194,14 @@ func (s *Server) MovePlayer(i, newX, newY int, shouldUpdate *bool) {
 	s.Game.Players[i].Y = newY
 	s.Game.Players[i].LastMoveTime = time.Now()
 	*shouldUpdate = true
+}
+
+func (s *Server) HandleDamage(i int) {
+	s.Game.Players[i].Damaged = true
+	go func() {
+		time.Sleep(2 * time.Second)
+		s.Game.Players[i].Damaged = false
+	}()
 }
 
 func (s *Server) UpdateGameState() {
@@ -201,9 +220,15 @@ func (s *Server) UpdateGameState() {
 				// Check for player hits
 				if update.Block == "f" || update.Block == "ex" {
 					for i, player := range s.Game.Players {
-						if player.X == update.X && player.Y == update.Y {
-							s.Game.Players[i].Lives--
-							s.playerUpdateChannel <- s.Game.Players
+						if s.Game.Players[i].Lives > 0 {
+							if player.X == update.X && player.Y == update.Y && !s.Game.Players[i].Damaged {
+								s.Game.Players[i].Lives--
+								s.HandleDamage(i)
+								s.playerUpdateChannel <- s.Game.Players
+								if s.Game.Players[i].Lives <= 0 {
+									s.lostGame(s.Game.Players[i])
+								}
+							}
 						}
 					}
 				}
@@ -276,4 +301,9 @@ func (s *Server) sendUpdatesToPlayers(data interface{}) {
 	s.gameMu.Lock()
 	s.Game.BlockUpdate = nil
 	s.gameMu.Unlock()
+}
+
+func (s *Server) lostGame(player game.Player) {
+	fmt.Println("game lost", player.ID)
+	s.playerUpdateChannel <- s.Game.Players
 }

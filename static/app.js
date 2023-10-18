@@ -40,7 +40,6 @@ function gameloop(updateType) {
 					gameboard.appendChild(bomb)
 				}
 				if (update.block == 'ex') {
-					console.log('test')
 					const RemoveBomb = document.querySelector(`.bomb[x="${update.x}"][y="${update.y}"]`)
 					if (RemoveBomb) {
 						RemoveBomb.remove()
@@ -112,10 +111,15 @@ function gameloop(updateType) {
 	function updatePlayerPosition(gameboard) {
 		playerState.value.forEach((player) => {
 			let playerElement = playerElements[player.id]
-			if (!playerElement) {
+			if (!playerElement && player.lives > 0) {
 				playerElement = Player(player)
 				playerElements[player.id] = playerElement
 				gameboard.appendChild(playerElement.getSprite())
+			}
+
+			if (player.lives <= 0) {
+				let removePlayer = document.getElementById(`player${player.id}`)
+				removePlayer.style.display = 'none'
 			}
 
 			if (playerElement) {
@@ -123,6 +127,12 @@ function gameloop(updateType) {
 				playerElement.updateSprite(player.direction)
 				sprite.style.left = player.x * 64 + 'px'
 				sprite.style.top = player.y * 64 + 'px'
+				if (player.damaged) {
+					sprite.classList.add('damaged')
+					setTimeout(() => {
+						sprite.classList.remove('damaged')
+					}, 2000)
+				}
 			}
 		})
 	}
