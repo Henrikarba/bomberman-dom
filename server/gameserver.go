@@ -257,17 +257,16 @@ func (s *Server) MonitorPlayerCount() {
 	}
 	for {
 		select {
-		case <-s.playerCountChannel:
+		case player := <-s.playerCountChannel:
 			s.gameMu.Lock()
 			currentCount := s.Game.PlayerCount
 			s.gameMu.Unlock()
-			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: playerMap[currentCount] + " joined"})
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name)})
 			if currentCount >= 2 {
 				s.NewGame()
-				for id := range s.Conns {
-					player := game.NewPlayer(id, s.Game.Map, playerMap[id])
-					s.Game.Players = append(s.Game.Players, *player)
-					s.Game.KeysPressed[id] = make(map[string]bool)
+				for i := range s.Game.Players {
+					game.StartingPositions(&s.Game.Players[i])
+					s.Game.KeysPressed[s.Game.Players[i].ID] = make(map[string]bool)
 				}
 
 				for i := 6; i >= 0; i-- {

@@ -95,8 +95,12 @@ function updatePlayerPosition(gameboard) {
 
 		if (player.lives <= 0) {
 			let removePlayer = document.getElementById(`player${player.id}`)
-			info.innerHTML = 'DEAD'
+
 			removePlayer.style.display = 'none'
+
+			if (player.id == playerID.value) {
+				info.innerHTML = 'DEAD'
+			}
 		}
 
 		if (playerElement) {

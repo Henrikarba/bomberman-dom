@@ -42,6 +42,8 @@ function chatAreaHandler(data) {
 
 function updatePlayerID(data) {
 	playerID.value = parseInt(data.message)
+
+	console.log(playerID.value)
 }
 
 function updatePlayerCount(data) {
