@@ -1,291 +1,295 @@
 *,
 *:before,
 *:after {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-	overflow-y: hidden;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
 }
 
 #app {
-	display: flex;
-	height: 100vh;
-	justify-content: center;
-	align-items: center;
-	background-color: rgb(66, 66, 66);
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(66, 66, 66);
 }
 
 #game {
-	transform: scale(1);
-	position: relative;
-	width: 1216px;
-	height: 832px;
+  transform: scale(1);
+  position: relative;
+  width: 1216px;
+  height: 832px;
 }
 
 .overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 
-	text-align: center;
-	display: flex;
-	justify-content: center;
-	font-size: 42px;
-	background-color: rgba(0, 0, 0, 0.2);
-	z-index: 10;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  font-size: 42px;
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: 10;
 }
 
 .overlay h2 {
-	color: white;
-	background-color: rgba(0, 0, 0, 0.295);
-	height: fit-content;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.295);
+  height: fit-content;
 }
 
 .chat {
-	margin-top: 2rem;
-	margin-left: 1rem;
-	width: 20rem;
-	height: 832px;
-	background-color: gray;
+  margin-top: 2rem;
+  margin-left: 1rem;
+  width: 20rem;
+  height: 832px;
+  background-color: gray;
 }
 
 .info {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 1rem;
-	color: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: white;
 }
 
 .heart {
-	margin-left: 3px;
-	width: 16px;
-	height: 16px;
-	background-image: url('assets/health.png');
+  margin-left: 3px;
+  width: 16px;
+  height: 16px;
+  background-image: url("assets/health.png");
 }
 
 @media (max-height: 849px) {
-	#game,
-	.chat,
-	.info {
-		transform: scale(0.8);
-	}
-	.chat {
-		margin-left: 0.5rem;
-	}
+  #game,
+  .chat,
+  .info {
+    transform: scale(0.8);
+  }
+  .chat {
+    margin-left: 0.5rem;
+  }
+  .info {
+    position: relative;
+    top: 10%;
+  }
 }
 
 .display {
-	display: flex;
-	flex-direction: row;
+  display: flex;
+  flex-direction: row;
 }
 
 .cell {
-	width: 64px;
-	height: 64px;
-	display: flex;
-	background-image: url('assets/Grass_Tile_lower.png');
-	background-size: contain;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  background-image: url("assets/Grass_Tile_lower.png");
+  background-size: contain;
 }
 
 .row:first-child .cell {
-	background-image: url('assets/Grass_Tile_Flat.png');
+  background-image: url("assets/Grass_Tile_Flat.png");
 }
 
-.cell[data-row='12'] {
-	background-image: url('assets/Grass_Tile_Flat.png');
-	transform: rotate(180deg);
+.cell[data-row="12"] {
+  background-image: url("assets/Grass_Tile_Flat.png");
+  transform: rotate(180deg);
 }
 
 .row .cell:last-child {
-	background-image: url('assets/Grass_Tile_Flat_r.png');
+  background-image: url("assets/Grass_Tile_Flat_r.png");
 }
 
 .row:first-child .cell:first-child {
-	background-image: url('assets/Grass_Tile_Corner_Edge_l.png');
+  background-image: url("assets/Grass_Tile_Corner_Edge_l.png");
 }
 
 .row:first-child .cell:last-child {
-	background-image: url('assets/Grass_Tile_Corner_Edge_r.png');
+  background-image: url("assets/Grass_Tile_Corner_Edge_r.png");
 }
 
 .row .cell:first-child {
-	background-image: url('assets/Grass_Tile_Flat_l.png');
+  background-image: url("assets/Grass_Tile_Flat_l.png");
 }
 
-.cell[data-row='12'][data-cell='0'] {
-	background-image: url('assets/Grass_Tile_Corner_Edge_r.png');
+.cell[data-row="12"][data-cell="0"] {
+  background-image: url("assets/Grass_Tile_Corner_Edge_r.png");
 }
 
-.cell[data-row='12'][data-cell='18'] {
-	background-image: url('assets/Grass_Tile_Corner_Edge_l.png');
+.cell[data-row="12"][data-cell="18"] {
+  background-image: url("assets/Grass_Tile_Corner_Edge_l.png");
 }
 
 .flex {
-	display: flex;
+  display: flex;
 }
 
 .cell {
-	width: 64px;
-	height: 64px;
+  width: 64px;
+  height: 64px;
 
-	display: flex;
-	align-items: center;
-	justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wall {
-	width: 64px;
-	height: 64px;
-	background-color: black;
-	background-image: url('./assets/EmptyBlock.png');
+  width: 64px;
+  height: 64px;
+  background-color: black;
+  background-image: url("./assets/EmptyBlock.png");
 }
 
 .destroyable {
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/BrickBlock.png');
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/BrickBlock.png");
 }
 
 .bomb {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-position: 0 0;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-position: 0 0;
 
-	animation: bomb 2s linear;
+  animation: bomb 2s linear;
 }
 
 @keyframes bomb {
-	0% {
-		background-image: url('./assets/tile079.png');
-	}
-	20% {
-		background-image: url('./assets/tile080.png');
-	}
-	40% {
-		background-image: url('./assets/tile081.png');
-	}
-	60% {
-		background-image: url('./assets/tile082.png');
-	}
-	80% {
-		background-image: url('./assets/tile083.png');
-	}
-	100% {
-		background-image: url('./assets/tile084.png');
-	}
+  0% {
+    background-image: url("./assets/tile079.png");
+  }
+  20% {
+    background-image: url("./assets/tile080.png");
+  }
+  40% {
+    background-image: url("./assets/tile081.png");
+  }
+  60% {
+    background-image: url("./assets/tile082.png");
+  }
+  80% {
+    background-image: url("./assets/tile083.png");
+  }
+  100% {
+    background-image: url("./assets/tile084.png");
+  }
 }
 
 .explosion {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/explode.png');
-	animation: explode 1s steps(6);
-	z-index: 4;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/explode.png");
+  animation: explode 1s steps(6);
+  z-index: 4;
 }
 
 @keyframes explode {
-	0% {
-		background-position: 0 0;
-	}
-	100% {
-		background-position: -384px 0;
-	}
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -384px 0;
+  }
 }
 
 .power1 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/powerup1.png');
-	z-index: 1;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/powerup1.png");
+  z-index: 1;
 }
 
 .power2 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/powerup2.png');
-	z-index: 1;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/powerup2.png");
+  z-index: 1;
 }
 
 .power3 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/powerup3.png');
-	z-index: 1;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/powerup3.png");
+  z-index: 1;
 }
 
 #player1 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/player1.png');
-	background-position: 0 0;
-	z-index: 2;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/player1.png");
+  background-position: 0 0;
+  z-index: 2;
 }
 
 #player2 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/player2.png');
-	background-position: 0 0;
-	z-index: 2;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/player2.png");
+  background-position: 0 0;
+  z-index: 2;
 }
 
 #player3 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/player3.png');
-	background-position: 0 0;
-	z-index: 2;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/player3.png");
+  background-position: 0 0;
+  z-index: 2;
 }
 
 #player4 {
-	position: absolute;
-	width: 64px;
-	height: 64px;
-	background-image: url('./assets/player4.png');
-	background-position: 0 0;
-	z-index: 2;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background-image: url("./assets/player4.png");
+  background-position: 0 0;
+  z-index: 2;
 }
 
 .damaged {
-	animation: invulnerability 2s steps(10, end);
+  animation: invulnerability 2s steps(10, end);
 }
 
 @keyframes invulnerability {
-	0%,
-	10%,
-	20%,
-	30%,
-	40%,
-	50%,
-	60%,
-	70%,
-	80%,
-	90%,
-	100% {
-		opacity: 0;
-	}
+  0%,
+  10%,
+  20%,
+  30%,
+  40%,
+  50%,
+  60%,
+  70%,
+  80%,
+  90%,
+  100% {
+    opacity: 0;
+  }
 
-	5%,
-	15%,
-	25%,
-	35%,
-	45%,
-	55%,
-	65%,
-	75%,
-	85% {
-		opacity: 100;
-	}
+  5%,
+  15%,
+  25%,
+  35%,
+  45%,
+  55%,
+  65%,
+  75%,
+  85% {
+    opacity: 100;
+  }
 }

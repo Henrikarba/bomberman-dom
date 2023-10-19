@@ -23,7 +23,7 @@ const div = mini.div({})
 const display = mini.div({ class: 'display' })
 
 const info = mini.div({ class: 'info' })
-const chat = mini.div({ class: 'chat' })
+const chat = drawchat()
 const overlay = mini.div({ class: 'overlay' }, mini.h2({}, 'SPECTATING'))
 
 let gameboard = undefined
@@ -97,4 +97,49 @@ function updatePlayerPosition(gameboard) {
 			}
 		}
 	})
+}
+
+function drawchat() {
+	let inputLength = 0
+
+	const handleInputChange = (e) => {
+		inputLength = e.target.value.length
+		const sendMessageButton = document.getElementById('send-message-button')
+		if (inputLength > 0) {
+			sendMessageButton.disabled = false
+		} else {
+			sendMessageButton.disabled = true
+		}
+	}
+	const input = mini.input({
+		id: 'message',
+		oninput: handleInputChange,
+	})
+
+	return mini.div({ class: 'chat' },
+		mini.form(
+			{ id: 'messageInput' },
+			{
+				style: 'display: flex; flex-direction: row;',
+				onsubmit: (e) => {
+					e.preventDefault()
+					const sendMessage = {
+						type: 'message',
+						name: input.value,
+					}
+					socket.send(JSON.stringify(sendMessage))
+					input.value = ''
+				},
+			},
+			input,
+			mini.button(
+				{
+					id: 'send-message-button',
+					type: 'submit',
+					disabled: true,
+				},
+				'SUBMIT'
+			)
+		)
+	)
 }
