@@ -37,6 +37,14 @@ type MessageType struct {
 
 var playerMap = make(map[int]string)
 
+var availableIDs = make(chan int, 4)
+
+func init() {
+	for i := 1; i <= 4; i++ {
+		availableIDs <- i
+	}
+}
+
 func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -44,15 +52,22 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	playerID := getNextPlayerID()
-	if playerID > 4 {
+	if len(s.Conns) >= 4 {
 		conn.WriteJSON(MessageType{Type: "server_full", Message: "Server is currently full, try again later"})
-		playerCounter--
 		return
 	}
 
-	// Add, remove players
+	playerID := <-availableIDs
+
 	s.AddConn(playerID, conn)
+	defer func() {
+		conn.Close()
+		s.ControlChan <- "stop"
+		playerCounter--
+		s.RemoveConn(playerID)
+
+		availableIDs <- playerID
+	}()
 
 	var lastKeydownTime time.Time
 	debounceDuration := 50 * time.Millisecond
@@ -61,9 +76,6 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		err := conn.ReadJSON(&rawMessage)
 		if err != nil {
 			log.Println("Error reading JSON:", err)
-			s.ControlChan <- "stop"
-			s.RemoveConn(playerID)
-			playerCounter--
 			return
 		}
 		s.handleMessage(rawMessage, playerID, &lastKeydownTime, debounceDuration)
@@ -86,24 +98,24 @@ func (s *Server) RemoveConn(userID int) {
 	defer s.connsMu.Unlock()
 
 	// Remove player from game state
-	for i := range s.Game.Players {
-		if s.Game.Players[i].ID == userID {
-			delete(s.Game.KeysPressed, userID)
-			s.Game.Players[i].Lives = 0
-			s.playerUpdateChannel <- s.Game.Players
-			break
+	if s.Game.Players != nil {
+		for i := range s.Game.Players {
+			if s.Game.Players[i].ID == userID {
+				s.Game.Players[i].Lives = 0
+				s.playerUpdateChannel <- s.Game.Players
+				break
+			}
 		}
 	}
 
 	// Remove connection
-	delete(s.Conns, userID)
 
+	delete(s.Conns, userID)
 	fmt.Printf("Removed connection with id %d\n", userID)
 	fmt.Println("s.Conns = ", s.Conns)
 }
 
-/*func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
-
+func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
 	for i, player := range players {
 		if player.ID == playerID {
 			s.Game.PlayerCount--
@@ -141,19 +153,21 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 		}
 
 	case "register":
+		s.connsMu.Lock()
+		s.gameMu.Lock()
+		defer s.gameMu.Unlock()
+		defer s.connsMu.Unlock()
 		var registerMsg game.Player
 		err = json.Unmarshal(rawMessage, &registerMsg)
 		if err != nil {
 			log.Println("Error unmarshaling to RegisterMessage:", err)
 			return
 		}
-		playerMap[playerID] = registerMsg.Name
-		s.connsMu.Lock()
+		newPlayer := game.NewPlayer(registerMsg.Name, playerID)
+		s.Game.Players = append(s.Game.Players, *newPlayer)
 		s.Conns[playerID].WriteJSON(MessageType{Type: "playerID", Message: fmt.Sprintf("%d", playerID)})
-		s.connsMu.Unlock()
-
 		s.Game.PlayerCount++
-		s.playerCountChannel <- registerMsg
+		s.playerCountChannel <- *newPlayer
 
 	case "message":
 		var msg MessageType
@@ -162,7 +176,11 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 			log.Println("Error unmarshaling to message:", err)
 			return
 		}
-		msg.Name = playerMap[playerID]
+		for i := range s.Game.Players {
+			if s.Game.Players[i].ID == playerID {
+				msg.Name = s.Game.Players[i].Name
+			}
+		}
 		s.sendUpdatesToPlayers(msg)
 	}
 

@@ -25,10 +25,10 @@ type Player struct {
 	// PowerUps       []PowerUp
 }
 
-func NewPlayer(id int, gameboard [][]string, name string) *Player {
+func NewPlayer(name string, id int) *Player {
 	player := &Player{
-		Name:           name,
 		ID:             id,
+		Name:           name,
 		Speed:          300,
 		AvailableBombs: 1,
 		FireDistance:   2,
@@ -36,31 +36,29 @@ func NewPlayer(id int, gameboard [][]string, name string) *Player {
 		Damaged:        false,
 	}
 
-	if gameboard == nil {
-		return player
-	}
+	return player
+}
 
-	rows := len(gameboard)
-	cols := len(gameboard[0])
+func StartingPositions(player *Player) {
+	rows := 13
+	cols := 19
 
-	switch id {
+	switch player.ID {
 	case 1:
 		player.X = 0
 		player.Y = 0
 		player.Direction = "down"
 	case 2:
 		player.X = cols - 1
+		player.Y = rows - 1
+		player.Direction = "up"
+	case 3:
+		player.X = cols - 1
 		player.Y = 0
 		player.Direction = "down"
-	case 3:
+	case 4:
 		player.X = 0
 		player.Y = rows - 1
 		player.Direction = "up"
-	case 4:
-		player.X = cols - 1
-		player.Y = rows - 1
-		player.Direction = "up"
 	}
-
-	return player
 }

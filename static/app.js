@@ -107,6 +107,13 @@ function updatePlayerPosition(gameboard) {
 				playerElements[player.id] = playerElement
 				gameboard.appendChild(playerElement.getSprite())
 			}
+
+			if (player.lives <= 0) {
+				let removePlayer = document.getElementById(`player${player.id}`)
+				info.innerHTML = 'DEAD'
+				removePlayer.style.display = 'none'
+			}
+
 			if (playerElement) {
 				const sprite = playerElement.getSprite()
 				playerElement.updateSprite(player.direction)
@@ -119,8 +126,7 @@ function updatePlayerPosition(gameboard) {
 					}, 2000)
 				}
 			}
-		}
-	})
+		})
 }
 
 function drawchat() {
