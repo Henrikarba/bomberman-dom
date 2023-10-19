@@ -68,8 +68,8 @@ func (s *Server) ListenForKeyPress(ctx context.Context) {
 	}
 	fmt.Println("Inside ListenForKeyPress, s.Game.KeysPressed:", s.Game.KeysPressed)
 	// Initialize s.Game.KeysPressed for all players
-	for id := range s.Conns {
-		s.Game.KeysPressed[id] = make(map[string]bool)
+	for _, player := range s.Game.Players {
+		s.Game.KeysPressed[player.ID] = make(map[string]bool)
 	}
 
 	for {
@@ -202,11 +202,15 @@ func (s *Server) HandleDamage(i int) {
 }
 
 func (s *Server) UpdateGameState() {
+	exitChan := make(chan struct{})
 	data := game.GameState{}
 	for {
 		data.BlockUpdate = nil
 		data.Players = nil
 		select {
+		case <-exitChan:
+			fmt.Println("gg")
+			return
 		case gameStateUpdate := <-s.gameStateChannel:
 			data = gameStateUpdate
 		case mapUpdate := <-s.mapUpdateChannel:
@@ -242,6 +246,16 @@ func (s *Server) UpdateGameState() {
 			data.Type = "player_state_update"
 			data.Players = playerUpdate
 			s.Game.Players = playerUpdate
+			if s.Game.Alive == 1 {
+				for i := range s.Game.Players {
+					if s.Game.Players[i].Lives > 0 {
+						s.sendUpdatesToPlayers(MessageType{Type: "gg", Name: "Server", Message: fmt.Sprintf("%s won!", s.Game.Players[i].Name)})
+						time.AfterFunc(3*time.Second, func() {
+							exitChan <- struct{}{}
+						})
+					}
+				}
+			}
 			s.gameMu.Unlock()
 		}
 
@@ -299,11 +313,14 @@ func (s *Server) startCountdown(ctx context.Context, cancelFunc context.CancelFu
 			fmt.Println("Starting game in: ", i)
 			if i == 0 {
 				s.NewGame()
-				for i := range s.Game.Players {
-					fmt.Println("STARTING:", s.Game.Players[i].ID)
-					game.StartingPositions(&s.Game.Players[i])
-					s.Game.KeysPressed[s.Game.Players[i].ID] = make(map[string]bool)
+				s.Game.Alive = len(s.Game.Players)
+
+				for i, player := range s.Game.Players {
+					game.StartingPositions(&player)
+					s.Game.Players[i] = player
+					s.Game.KeysPressed[player.ID] = make(map[string]bool)
 				}
+				s.Game.Playing = true
 				s.ControlChan <- "start"
 				s.gameStateChannel <- s.Game
 			}
@@ -327,5 +344,6 @@ func (s *Server) sendUpdatesToPlayers(data interface{}) {
 
 func (s *Server) lostGame(player game.Player) {
 	fmt.Println("game lost", player.ID)
+	s.Game.Alive--
 	s.playerUpdateChannel <- s.Game.Players
 }

@@ -1,4 +1,14 @@
-import { playerState, blockUpdates, mapState, gameloop, playerID, playerCount, chatArea } from './app.js'
+import {
+	playerState,
+	blockUpdates,
+	mapState,
+	gameloop,
+	playerID,
+	playerCount,
+	chatArea,
+	overlay,
+	gameboard,
+} from './app.js'
 import mini from './mini/framework.js'
 
 // update values here for gameloop
@@ -13,6 +23,7 @@ const createWebSocket = () => {
 		'map_state_update': updateMapState,
 		'game_over': endGame,
 		'message': chatAreaHandler,
+		'gg': ggHandler,
 	}
 
 	const socket = new WebSocket('ws://localhost:5000/ws')
@@ -33,6 +44,15 @@ const createWebSocket = () => {
 }
 
 export const socket = createWebSocket()
+
+function ggHandler(data) {
+	overlay.innerHTML = ''
+	const msg = mini.h2({}, data.message)
+	overlay.appendChild(msg)
+	gameboard.appendChild(overlay)
+	chatAreaHandler(data)
+	endGame()
+}
 
 function chatAreaHandler(data) {
 	const name = mini.span({ style: 'color: orange;' }, `${data.name}`)

@@ -34,9 +34,9 @@ const sendMessageButton = mini.button(
 	'SUBMIT'
 )
 const chat = drawchat()
-const overlay = mini.div({ class: 'overlay' }, mini.h2({}, 'SPECTATING'))
+export const overlay = mini.div({ class: 'overlay' }, mini.h2({}, 'SPECTATING'))
 
-let gameboard = undefined
+export let gameboard = undefined
 let didGameStart = false
 
 const playerElements = {}

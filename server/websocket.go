@@ -41,6 +41,8 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	if len(s.Conns) >= 4 {
 		conn.WriteJSON(MessageType{Type: "server_full", Message: "Server is currently full, try again later"})
 		return
+	} else if s.Game.Playing {
+		conn.WriteJSON(MessageType{Type: "server_full", Message: "Game in progress, our servers can handle only one instance"})
 	}
 
 	playerID := <-availableIDs

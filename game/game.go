@@ -7,15 +7,15 @@ import (
 )
 
 type GameState struct {
-	Type string `json:"type,omitempty"`
-
+	Type        string `json:"type,omitempty"`
+	Playing     bool
 	Map         [][]string              `json:"map,omitempty"`
 	BlockUpdate []BlockUpdate           `json:"block_updates,omitempty"`
 	Players     []Player                `json:"players,omitempty"`
 	KeysPressed map[int]map[string]bool `json:"-"`
-
-	PlayerCount int `json:"player_count,omitempty"`
-	CountDown   int `json:"countdown"`
+	Alive       int                     `json:"-"`
+	PlayerCount int                     `json:"player_count,omitempty"`
+	CountDown   int                     `json:"countdown"`
 }
 
 type BlockUpdate struct {
