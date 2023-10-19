@@ -50,7 +50,14 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		s.ControlChan <- "stop"
 		s.RemoveConn(playerID)
+		for i := range s.Game.Players {
+			if s.Game.Players[i].ID == playerID {
+				s.playerLeaveChannel <- s.Game.Players[i]
+			}
+		}
 
+		players := s.removePlayerByID(s.Game.Players, playerID)
+		s.Game.Players = players
 		availableIDs <- playerID
 	}()
 
@@ -101,7 +108,6 @@ func (s *Server) RemoveConn(userID int) {
 }
 
 func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
-
 	for i, player := range players {
 		if player.ID == playerID {
 			return append(players[:i], players[i+1:]...)
