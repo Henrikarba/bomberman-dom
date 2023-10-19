@@ -45,11 +45,18 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	playerID := getNextPlayerID()
 	if playerID > 4 {
+		playerCounterMutex.Lock()
+		defer playerCounterMutex.Unlock()
 		conn.WriteJSON(MessageType{Type: "server_full", Message: "Server is currently full, try again later"})
 		playerCounter--
 		return
 	}
-
+	defer func() {
+		conn.Close()
+		s.ControlChan <- "stop"
+		playerCounter--
+		s.RemoveConn(playerID)
+	}()
 	// Add, remove players
 	s.AddConn(playerID, conn)
 
@@ -60,9 +67,6 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		err := conn.ReadJSON(&rawMessage)
 		if err != nil {
 			log.Println("Error reading JSON:", err)
-			s.ControlChan <- "stop"
-			s.RemoveConn(playerID)
-			playerCounter--
 			return
 		}
 		s.handleMessage(rawMessage, playerID, &lastKeydownTime, debounceDuration)
@@ -85,24 +89,24 @@ func (s *Server) RemoveConn(userID int) {
 	defer s.connsMu.Unlock()
 
 	// Remove player from game state
-	for i := range s.Game.Players {
-		if s.Game.Players[i].ID == userID {
-			delete(s.Game.KeysPressed, userID)
-			s.Game.Players[i].Lives = 0
-			s.playerUpdateChannel <- s.Game.Players
-			break
+	if s.Game.Players != nil {
+		for i := range s.Game.Players {
+			if s.Game.Players[i].ID == userID {
+				s.Game.Players[i].Lives = 0
+				s.playerUpdateChannel <- s.Game.Players
+				break
+			}
 		}
 	}
 
 	// Remove connection
-	delete(s.Conns, userID)
 
+	delete(s.Conns, userID)
 	fmt.Printf("Removed connection with id %d\n", userID)
 	fmt.Println("s.Conns = ", s.Conns)
 }
 
 func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
-
 	for i, player := range players {
 		if player.ID == playerID {
 			s.Game.PlayerCount--
