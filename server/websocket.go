@@ -102,7 +102,7 @@ func (s *Server) RemoveConn(userID int) {
 	fmt.Println("s.Conns = ", s.Conns)
 }
 
-func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
+/*func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Player {
 
 	for i, player := range players {
 		if player.ID == playerID {
@@ -111,7 +111,7 @@ func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Pl
 		}
 	}
 	return players
-}
+}*/
 
 func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKeydownTime *time.Time, debounceDuration time.Duration) {
 	var genMsg MessageType

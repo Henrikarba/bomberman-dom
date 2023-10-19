@@ -60,7 +60,12 @@ export function gameloop(updateType) {
 function newLobby() {
 	didGameStart = false
 	div.appendChild(info)
-	div.appendChild(mini.div({ id: 'lobby' },))
+	div.appendChild(
+		mini.div({ id: 'lobby' },
+			mini.div({ id: 'lobby-player-count' }),
+			mini.div({ id: 'lobby-timer' })
+		)
+	)
 
 	display.appendChild(div)
 	display.appendChild(chat)

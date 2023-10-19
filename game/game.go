@@ -15,7 +15,7 @@ type GameState struct {
 	KeysPressed map[int]map[string]bool `json:"-"`
 
 	PlayerCount int `json:"player_count,omitempty"`
-	CountDown   int `json:"countdown,omitempty"`
+	CountDown   int `json:"countdown"`
 }
 
 type BlockUpdate struct {

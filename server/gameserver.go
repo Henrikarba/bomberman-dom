@@ -207,7 +207,6 @@ func (s *Server) UpdateGameState() {
 		select {
 		case gameStateUpdate := <-s.gameStateChannel:
 			data = gameStateUpdate
-			break
 		case mapUpdate := <-s.mapUpdateChannel:
 			s.gameMu.Lock()
 			s.Game.BlockUpdate = mapUpdate
@@ -236,14 +235,12 @@ func (s *Server) UpdateGameState() {
 
 			data.Type = "map_state_update"
 			data.BlockUpdate = mapUpdate
-			break
 		case playerUpdate := <-s.playerUpdateChannel:
 			s.gameMu.Lock()
 			data.Type = "player_state_update"
 			data.Players = playerUpdate
 			s.Game.Players = playerUpdate
 			s.gameMu.Unlock()
-			break
 		}
 
 		s.sendUpdatesToPlayers(data)
@@ -255,30 +252,27 @@ func (s *Server) MonitorPlayerCount() {
 	data := game.GameState{
 		Type: "status",
 	}
-	for {
-		select {
-		case <-s.playerCountChannel:
-			s.gameMu.Lock()
-			currentCount := s.Game.PlayerCount
-			s.gameMu.Unlock()
-			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: playerMap[currentCount] + " joined", PlayerCount: currentCount})
-			if currentCount >= 2 {
-				s.NewGame()
-				for id := range s.Conns {
-					player := game.NewPlayer(id, s.Game.Map, playerMap[id])
-					s.Game.Players = append(s.Game.Players, *player)
-					s.Game.KeysPressed[id] = make(map[string]bool)
-				}
+	for range s.playerCountChannel {
+		s.gameMu.Lock()
+		currentCount := s.Game.PlayerCount
+		s.gameMu.Unlock()
+		s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: playerMap[currentCount] + " joined", PlayerCount: currentCount})
+		if currentCount >= 2 {
+			s.NewGame()
+			for id := range s.Conns {
+				player := game.NewPlayer(id, s.Game.Map, playerMap[id])
+				s.Game.Players = append(s.Game.Players, *player)
+				s.Game.KeysPressed[id] = make(map[string]bool)
+			}
 
-				for i := 6; i >= 0; i-- {
-					data.CountDown = i
-					s.sendUpdatesToPlayers(data)
-					time.Sleep(1 * time.Second)
-					fmt.Println("Starting game in: ", i)
-					if i == 0 {
-						s.ControlChan <- "start"
-						s.gameStateChannel <- s.Game
-					}
+			for i := 6; i >= 0; i-- {
+				data.CountDown = i
+				s.sendUpdatesToPlayers(data)
+				time.Sleep(1 * time.Second)
+				fmt.Println("Starting game in: ", i)
+				if i == 0 {
+					s.ControlChan <- "start"
+					s.gameStateChannel <- s.Game
 				}
 			}
 		}
