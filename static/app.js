@@ -60,7 +60,13 @@ export function gameloop(updateType) {
 function newLobby() {
 	didGameStart = false
 	div.appendChild(info)
-	div.appendChild(mini.div({ id: 'lobby' }, mini.div({ id: 'lobby-player-count' }), mini.div({ id: 'lobby-timer' })))
+	div.appendChild(
+		mini.div(
+			{ id: 'lobby' },
+			mini.div({}, mini.div({}, 'Players In Lobby'), mini.div({ id: 'lobby-player-count' })),
+			mini.div({ id: 'lobby-timer' })
+		)
+	)
 
 	display.appendChild(div)
 	display.appendChild(chat)
@@ -84,8 +90,8 @@ function updatePlayerPosition(gameboard) {
 			if (playerID.value == player.id) {
 				if (player.lives <= 0) {
 					let removePlayer = document.getElementById(`player${player.id}`)
-					info.innerHTML = 'DEAD'
 					removePlayer.style.display = 'none'
+					info.innerHTML = 'DEAD'
 				} else {
 					let hearts = ``
 					for (let i = 1; i <= player.lives; i++) {
@@ -97,6 +103,10 @@ function updatePlayerPosition(gameboard) {
 
 			let playerElement = playerElements[player.id]
 
+			if (player.lives <= 0) {
+				let removePlayer = document.getElementById(`player${player.id}`)
+				removePlayer.style.display = 'none'
+			}
 			if (!playerElement && player.lives > 0) {
 				playerElement = Player(player)
 				playerElements[player.id] = playerElement

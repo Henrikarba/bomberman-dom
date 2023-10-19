@@ -169,6 +169,7 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 		for i := range s.Game.Players {
 			if s.Game.Players[i].ID == playerID {
 				msg.Name = s.Game.Players[i].Name
+				msg.PlayerCount = len(s.Game.Players)
 			}
 		}
 		s.sendUpdatesToPlayers(msg)

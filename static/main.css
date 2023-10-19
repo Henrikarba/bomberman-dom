@@ -27,6 +27,24 @@
   position: relative;
   width: 1216px;
   height: 832px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  font-size: xx-large;
+  text-align: center;
+}
+
+#lobby-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+#lobby-player-count {
+  display: flex;
+  flex-direction: row;
 }
 
 .overlay {
@@ -267,37 +285,53 @@
 
 #player1 {
   position: absolute;
+}
+
+.player1,
+#player1 {
   width: 64px;
   height: 64px;
   background-image: url("./assets/player1.png");
-  background-position: 0 0;
+  background-position: -64px 0;
   z-index: 2;
 }
 
 #player2 {
   position: absolute;
+}
+
+.player2,
+#player2 {
   width: 64px;
   height: 64px;
   background-image: url("./assets/player2.png");
-  background-position: 0 0;
+  background-position: -64px 0;
   z-index: 2;
 }
 
 #player3 {
   position: absolute;
+}
+
+.player3,
+#player3 {
   width: 64px;
   height: 64px;
   background-image: url("./assets/player3.png");
-  background-position: 0 0;
+  background-position: -64px 0;
   z-index: 2;
 }
 
 #player4 {
   position: absolute;
+}
+
+.player4,
+#player4 {
   width: 64px;
   height: 64px;
   background-image: url("./assets/player4.png");
-  background-position: 0 0;
+  background-position: -64px 0;
   z-index: 2;
 }
 
