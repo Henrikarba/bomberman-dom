@@ -48,7 +48,7 @@ export function gameloop(updateType) {
 
 function newLobby() {
 	div.appendChild(info)
-	div.appendChild(mini.div({ style: 'border: 1px solid black; width: 300px;' }))
+	div.appendChild(mini.div({ id: 'game' }))
 
 	display.appendChild(div)
 	display.appendChild(chat)
@@ -59,14 +59,10 @@ function newGame() {
 	if (!gameboard) gameboard = drawGameboard(mapState.value)
 	if (overlay) overlay.remove()
 	div.innerHTML = ''
-
 	div.appendChild(info)
 	div.appendChild(gameboard)
-	display.appendChild(div)
-	display.appendChild(chat)
 
 	updatePlayerPosition(gameboard)
-	mini.render(app, display)
 }
 
 function updatePlayerPosition(gameboard) {
@@ -125,7 +121,8 @@ function drawchat() {
 		oninput: handleInputChange,
 	})
 
-	return mini.div({ class: 'chat' },
+	return mini.div(
+		{ class: 'chat' },
 		mini.form(
 			{ id: 'messageInput' },
 			{
