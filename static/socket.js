@@ -38,6 +38,8 @@ function chatAreaHandler(data) {
 	const name = mini.span({ style: 'color: orange;' }, `${data.name}`)
 	const msg = mini.div({ style: 'word-wrap: break-word;' }, name, `: ${data.message}`)
 	chatArea.appendChild(msg)
+	const lobby = document.getElementById('lobby')
+	lobby.innerHTML = `<span>Total Players: ${data.player_count}</span>`
 }
 
 function updatePlayerID(data) {
@@ -46,6 +48,7 @@ function updatePlayerID(data) {
 
 function updatePlayerCount(data) {
 	playerCount.value = data.player_count
+
 }
 
 function showServerFull(data) {

@@ -37,6 +37,7 @@ const chat = drawchat()
 const overlay = mini.div({ class: 'overlay' }, mini.h2({}, 'SPECTATING'))
 
 let gameboard = undefined
+let didGameStart = false
 
 const playerElements = {}
 
@@ -57,8 +58,9 @@ export function gameloop(updateType) {
 }
 
 function newLobby() {
+	didGameStart = false
 	div.appendChild(info)
-	div.appendChild(mini.div({ id: 'game' }))
+	div.appendChild(mini.div({ id: 'lobby' },))
 
 	display.appendChild(div)
 	display.appendChild(chat)
@@ -66,6 +68,7 @@ function newLobby() {
 }
 
 function newGame() {
+	didGameStart = true
 	if (!gameboard) gameboard = drawGameboard(mapState.value)
 	if (overlay) overlay.remove()
 	div.innerHTML = ''
@@ -77,38 +80,39 @@ function newGame() {
 
 function updatePlayerPosition(gameboard) {
 	playerState.value.forEach((player) => {
-		if (playerID.value == player.id) {
-			let hearts = ``
-			for (let i = 1; i <= player.lives; i++) {
-				hearts += `<div class="heart"></div>`
+		if (didGameStart) {
+			if (playerID.value == player.id) {
+				if (player.lives <= 0) {
+					let removePlayer = document.getElementById(`player${player.id}`)
+					info.innerHTML = 'DEAD'
+					removePlayer.style.display = 'none'
+				} else {
+					let hearts = ``
+					for (let i = 1; i <= player.lives; i++) {
+						hearts += `<div class="heart"></div>`
+					}
+					info.innerHTML = 'Lives: ' + hearts
+				}
 			}
-			info.innerHTML = 'Lives: ' + hearts
-		}
 
-		let playerElement = playerElements[player.id]
+			let playerElement = playerElements[player.id]
 
-		if (!playerElement && player.lives > 0) {
-			playerElement = Player(player)
-			playerElements[player.id] = playerElement
-			gameboard.appendChild(playerElement.getSprite())
-		}
-
-		if (player.lives <= 0) {
-			let removePlayer = document.getElementById(`player${player.id}`)
-			info.innerHTML = 'DEAD'
-			removePlayer.style.display = 'none'
-		}
-
-		if (playerElement) {
-			const sprite = playerElement.getSprite()
-			playerElement.updateSprite(player.direction)
-			sprite.style.left = player.x * 64 + 'px'
-			sprite.style.top = player.y * 64 + 'px'
-			if (player.damaged) {
-				sprite.classList.add('damaged')
-				setTimeout(() => {
-					sprite.classList.remove('damaged')
-				}, 2000)
+			if (!playerElement && player.lives > 0) {
+				playerElement = Player(player)
+				playerElements[player.id] = playerElement
+				gameboard.appendChild(playerElement.getSprite())
+			}
+			if (playerElement) {
+				const sprite = playerElement.getSprite()
+				playerElement.updateSprite(player.direction)
+				sprite.style.left = player.x * 64 + 'px'
+				sprite.style.top = player.y * 64 + 'px'
+				if (player.damaged) {
+					sprite.classList.add('damaged')
+					setTimeout(() => {
+						sprite.classList.remove('damaged')
+					}, 2000)
+				}
 			}
 		}
 	})

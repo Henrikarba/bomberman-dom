@@ -261,7 +261,7 @@ func (s *Server) MonitorPlayerCount() {
 			s.gameMu.Lock()
 			currentCount := s.Game.PlayerCount
 			s.gameMu.Unlock()
-			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: playerMap[currentCount] + " joined"})
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: playerMap[currentCount] + " joined", PlayerCount: currentCount})
 			if currentCount >= 2 {
 				s.NewGame()
 				for id := range s.Conns {

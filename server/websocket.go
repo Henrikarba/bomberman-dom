@@ -29,9 +29,10 @@ func getNextPlayerID() int {
 }
 
 type MessageType struct {
-	Type    string `json:"type,omitempty"`
-	Name    string `json:"name,omitempty"`
-	Message string `json:"message,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Message     string `json:"message,omitempty"`
+	PlayerCount int    `json:"player_count"`
 }
 
 var playerMap = make(map[int]string)
