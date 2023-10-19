@@ -20,6 +20,7 @@
 	position: relative;
 	width: 1216px;
 	height: 832px;
+	border: 1px solid black;
 }
 
 .overlay {

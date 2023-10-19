@@ -31,9 +31,9 @@ let gameboard = undefined
 const playerElements = {}
 
 export function gameloop(updateType) {
-	console.log(playerID.value)
 	const gameLoopUpdates = {
 		'status': () => console.log(playerCount.value),
+		'playerID': newLobby,
 		'new_game': newGame,
 		'player_state_update': () => updatePlayerPosition(gameboard),
 		'map_state_update': () => mapStateUpdate(gameboard, blockUpdates),
@@ -44,6 +44,15 @@ export function gameloop(updateType) {
 
 	const action = gameLoopUpdates[updateType]
 	if (action) action()
+}
+
+function newLobby() {
+	div.appendChild(info)
+	div.appendChild(mini.div({ style: 'border: 1px solid black; width: 300px;' }))
+
+	display.appendChild(div)
+	display.appendChild(chat)
+	mini.render(app, display)
 }
 
 function newGame() {

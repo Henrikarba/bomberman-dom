@@ -21,10 +21,11 @@ const createWebSocket = () => {
 
 		const action = actionMap[data.type]
 		if (action) {
-			action(data)
+			requestAnimationFrame(() => {
+				action(data)
+				gameloop(data.type)
+			})
 		}
-
-		gameloop(data.type)
 	}
 	return socket
 }

@@ -48,3 +48,9 @@ export function drawStartMenu() {
 		)
 	)
 }
+
+const data = {
+	type: 'get_posts',
+}
+
+socket.send(JSON.stringify(data))
