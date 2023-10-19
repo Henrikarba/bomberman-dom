@@ -20,7 +20,6 @@
 	position: relative;
 	width: 1216px;
 	height: 832px;
-	border: 1px solid black;
 }
 
 .overlay {
@@ -76,6 +75,10 @@
 	}
 	.chat {
 		margin-left: 0.5rem;
+	}
+	.info {
+		position: relative;
+		top: 10%;
 	}
 }
 

@@ -86,12 +86,20 @@ function initNewGame(data) {
 function keyDownHandler(e) {
 	// console.log('KEY DOWN')
 	const keyDown = e.key.toLowerCase()
-	if (!'wsad '.includes(keyDown)) return
-	activeKeys.add(keyDown)
+	if (!isExcludedInput(e.target)) {
+		if (!'wsad '.includes(keyDown)) return
+		activeKeys.add(keyDown)
+	}
 }
 
 function keyUpHandler(e) {
 	const keyUp = e.key.toLowerCase()
-	if (!'wsad '.includes(keyUp)) return
-	activeKeys.delete(keyUp)
+	if (!isExcludedInput(e.target)) {
+		if (!'wsad '.includes(keyUp)) return
+		activeKeys.delete(keyUp)
+	}
+}
+
+function isExcludedInput(target) {
+	return target.tagName === 'INPUT';
 }
