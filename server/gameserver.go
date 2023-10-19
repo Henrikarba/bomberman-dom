@@ -253,11 +253,8 @@ func (s *Server) MonitorPlayerCount() {
 		Type: "status",
 	}
 	for player := range s.playerCountChannel {
-		s.gameMu.Lock()
-		currentCount := s.Game.PlayerCount
-		s.gameMu.Unlock()
-		s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), PlayerCount: currentCount})
-		if currentCount >= 2 {
+		s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), PlayerCount: len(s.Game.Players)})
+		if len(s.Game.Players) >= 2 {
 			s.NewGame()
 			for i := range s.Game.Players {
 				game.StartingPositions(&s.Game.Players[i])

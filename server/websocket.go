@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -17,25 +16,12 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  256,
 }
 
-var playerCounter = 1
-var playerCounterMutex = &sync.Mutex{}
-
-func getNextPlayerID() int {
-	playerCounterMutex.Lock()
-	defer playerCounterMutex.Unlock()
-	id := playerCounter
-	playerCounter++
-	return id
-}
-
 type MessageType struct {
 	Type        string `json:"type,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Message     string `json:"message,omitempty"`
 	PlayerCount int    `json:"player_count"`
 }
-
-var playerMap = make(map[int]string)
 
 var availableIDs = make(chan int, 4)
 
@@ -63,7 +49,6 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		conn.Close()
 		s.ControlChan <- "stop"
-		playerCounter--
 		s.RemoveConn(playerID)
 
 		availableIDs <- playerID
@@ -119,7 +104,6 @@ func (s *Server) removePlayerByID(players []game.Player, playerID int) []game.Pl
 
 	for i, player := range players {
 		if player.ID == playerID {
-			s.Game.PlayerCount--
 			return append(players[:i], players[i+1:]...)
 		}
 	}
@@ -167,7 +151,6 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 		newPlayer := game.NewPlayer(registerMsg.Name, playerID)
 		s.Game.Players = append(s.Game.Players, *newPlayer)
 		s.Conns[playerID].WriteJSON(MessageType{Type: "playerID", Message: fmt.Sprintf("%d", playerID)})
-		s.Game.PlayerCount++
 		s.playerCountChannel <- *newPlayer
 
 	case "message":
