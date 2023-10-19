@@ -24,17 +24,24 @@
 .chat {
 	margin-top: 2rem;
 	margin-left: 1rem;
-	width: 10rem;
+	width: 20rem;
 	height: 832px;
 	background-color: gray;
 }
 
 .info {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 	margin-bottom: 1rem;
 	color: white;
 }
 
-.infoText {
+.heart {
+	margin-left: 3px;
+	width: 16px;
+	height: 16px;
+	background-image: url('assets/health.png');
 }
 
 @media (max-height: 849px) {

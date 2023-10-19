@@ -15,8 +15,11 @@ const mapState = mini.createState([])
 const playerState = mini.createState([])
 const blockUpdates = mini.createState([])
 let gameboard = undefined
+let info = undefined
+let chat = undefined
 const playerElements = {}
 let playerCount = 0
+let playerID
 
 function gameloop(updateType) {
 	switch (updateType) {
@@ -27,15 +30,11 @@ function gameloop(updateType) {
 			if (!gameboard) gameboard = drawGameboard(mapState.value)
 			const display = mini.div({ class: 'display' })
 			const game = mini.div({ class: 'game' })
-			const info = mini.div({ class: 'info' },
-				mini.p({
-					class: 'infoText',
-				}, `Lives:`)
-			)
+			info = mini.div({ class: 'info' })
 			game.appendChild(info)
 			game.appendChild(gameboard)
 			display.appendChild(game)
-			const chat = mini.div({ class: 'chat' }, "test")
+			chat = mini.div({ class: 'chat' })
 			display.appendChild(chat)
 			updatePlayerPosition(gameboard)
 			mini.render(app, display)
@@ -117,7 +116,16 @@ function gameloop(updateType) {
 
 	function updatePlayerPosition(gameboard) {
 		playerState.value.forEach((player) => {
+			if (playerID == player.id) {
+				let hearts = ``
+				for (let i = 1; i <= player.lives; i++) {
+					hearts += `<div class="heart"></div>`
+				}
+				info.innerHTML = "Lives: " + hearts
+			}
+
 			let playerElement = playerElements[player.id]
+
 			if (!playerElement && player.lives > 0) {
 				playerElement = Player(player)
 				playerElements[player.id] = playerElement
@@ -228,6 +236,9 @@ socket.onmessage = (e) => {
 	const data = JSON.parse(e.data)
 	console.log(data)
 	switch (data.type) {
+		case 'playerID':
+			playerID = data.message
+			break
 		case 'status':
 			playerCount = data.player_count
 			break
