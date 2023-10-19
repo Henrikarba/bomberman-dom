@@ -18,44 +18,51 @@ export const blockUpdates = mini.createState([])
 export const playerCount = mini.createState(0)
 export const playerID = mini.createState()
 
+//
+const div = mini.div({})
+const display = mini.div({ class: 'display' })
+
+const info = mini.div({ class: 'info' })
+const chat = mini.div({ class: 'chat' })
+const overlay = mini.div({ class: 'overlay' }, mini.h2({}, 'SPECTATING'))
+
 let gameboard = undefined
-let info = undefined
-let chat = undefined
+
 const playerElements = {}
 
 export function gameloop(updateType) {
 	console.log(playerID.value)
-	const gameLoopTypes = {
+	const gameLoopUpdates = {
 		'status': () => console.log(playerCount.value),
 		'new_game': newGame,
 		'player_state_update': () => updatePlayerPosition(gameboard),
 		'map_state_update': () => mapStateUpdate(gameboard, blockUpdates),
-		'end_game': () => {
-			return
+		'game_over': () => {
+			gameboard.appendChild(overlay)
 		},
 	}
 
-	const action = gameLoopTypes[updateType]
+	const action = gameLoopUpdates[updateType]
 	if (action) action()
 }
 
 function newGame() {
 	if (!gameboard) gameboard = drawGameboard(mapState.value)
-	const display = mini.div({ class: 'display' })
-	const game = mini.div({ class: 'game' })
-	info = mini.div({ class: 'info' })
-	game.appendChild(info)
-	game.appendChild(gameboard)
-	display.appendChild(game)
-	chat = mini.div({ class: 'chat' })
+	if (overlay) overlay.remove()
+	div.innerHTML = ''
+
+	div.appendChild(info)
+	div.appendChild(gameboard)
+	display.appendChild(div)
 	display.appendChild(chat)
+
 	updatePlayerPosition(gameboard)
 	mini.render(app, display)
 }
 
 function updatePlayerPosition(gameboard) {
 	playerState.value.forEach((player) => {
-		if (playerID == player.id) {
+		if (playerID.value == player.id) {
 			let hearts = ``
 			for (let i = 1; i <= player.lives; i++) {
 				hearts += `<div class="heart"></div>`
@@ -73,6 +80,7 @@ function updatePlayerPosition(gameboard) {
 
 		if (player.lives <= 0) {
 			let removePlayer = document.getElementById(`player${player.id}`)
+			info.innerHTML = 'DEAD'
 			removePlayer.style.display = 'none'
 		}
 

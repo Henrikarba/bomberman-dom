@@ -8,7 +8,6 @@ const createWebSocket = () => {
 		'status': updatePlayerCount,
 		'server_full': showServerFull,
 		'new_game': initNewGame,
-		'game_over': endGame,
 		'player_state_update': updatePlayerState,
 		'map_state_update': updateMapState,
 		'game_over': endGame,
