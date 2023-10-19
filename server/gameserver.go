@@ -26,6 +26,7 @@ type Server struct {
 	mapUpdateChannel    chan []game.BlockUpdate
 	playerUpdateChannel chan []game.Player
 	playerCountChannel  chan game.Player
+	playerLeaveChannel  chan game.Player
 }
 
 func New() *Server {
@@ -43,6 +44,7 @@ func New() *Server {
 		mapUpdateChannel:    make(chan []game.BlockUpdate, 100),
 		playerUpdateChannel: make(chan []game.Player, 100),
 		playerCountChannel:  make(chan game.Player, 4),
+		playerLeaveChannel:  make(chan game.Player, 4),
 	}
 }
 
@@ -252,24 +254,58 @@ func (s *Server) MonitorPlayerCount() {
 	data := game.GameState{
 		Type: "status",
 	}
-	for player := range s.playerCountChannel {
-		s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), PlayerCount: len(s.Game.Players)})
-		if len(s.Game.Players) >= 2 {
-			s.NewGame()
-			for i := range s.Game.Players {
-				game.StartingPositions(&s.Game.Players[i])
-				s.Game.KeysPressed[s.Game.Players[i].ID] = make(map[string]bool)
+
+	var cancelFunc context.CancelFunc
+	var ctx context.Context
+	playerCountChange := make(chan int, 4)
+
+	for {
+		select {
+		case player := <-s.playerCountChannel:
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), PlayerCount: len(s.Game.Players)})
+			if len(s.Game.Players) == 2 && cancelFunc == nil {
+				ctx, cancelFunc = context.WithCancel(context.Background())
+				go s.startCountdown(ctx, cancelFunc, data, playerCountChange, 20)
+			}
+			if len(s.Game.Players) == 4 {
+				playerCountChange <- 4
 			}
 
-			for i := 6; i >= 0; i-- {
-				data.CountDown = i
-				s.sendUpdatesToPlayers(data)
-				time.Sleep(1 * time.Second)
-				fmt.Println("Starting game in: ", i)
-				if i == 0 {
-					s.ControlChan <- "start"
-					s.gameStateChannel <- s.Game
+		case player := <-s.playerLeaveChannel:
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s left.", player.Name), PlayerCount: len(s.Game.Players)})
+			if len(s.Game.Players) < 2 && cancelFunc != nil {
+				cancelFunc()
+				cancelFunc = nil
+			}
+		}
+	}
+}
+
+func (s *Server) startCountdown(ctx context.Context, cancelFunc context.CancelFunc, data game.GameState, playerCountChange chan int, startValue int) {
+	for i := startValue; i >= 0; i-- {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Countdown cancelled")
+			return
+		case newCount := <-playerCountChange:
+			if newCount == 4 {
+				i = 10
+			}
+
+		default:
+			data.CountDown = i
+			s.sendUpdatesToPlayers(data)
+			time.Sleep(1 * time.Second)
+			fmt.Println("Starting game in: ", i)
+			if i == 0 {
+				s.NewGame()
+				for i := range s.Game.Players {
+					fmt.Println("STARTING:", s.Game.Players[i].ID)
+					game.StartingPositions(&s.Game.Players[i])
+					s.Game.KeysPressed[s.Game.Players[i].ID] = make(map[string]bool)
 				}
+				s.ControlChan <- "start"
+				s.gameStateChannel <- s.Game
 			}
 		}
 	}
