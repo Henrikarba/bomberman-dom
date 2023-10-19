@@ -126,7 +126,8 @@ function updatePlayerPosition(gameboard) {
 					}, 2000)
 				}
 			}
-		})
+		}
+	})
 }
 
 function drawchat() {
