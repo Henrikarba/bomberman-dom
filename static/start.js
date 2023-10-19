@@ -1,5 +1,5 @@
 import mini from './mini/framework.js'
-import { socket } from './app.js'
+import { socket } from './socket.js'
 
 export function drawStartMenu() {
 	let inputLength = 0

@@ -2,6 +2,7 @@ package game
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -38,6 +39,20 @@ func ClearPowerup(x int, y int, gameboard [][]string, mapUpdateChannel chan<- []
 	}
 
 	mapUpdateChannel <- blockUpdate
+}
+
+func ReplenishBomb(playerID int, game *GameState, mu *sync.Mutex) {
+	time.AfterFunc(3*time.Second, func() {
+		mu.Lock()
+		defer mu.Unlock()
+
+		for i := range game.Players {
+			if game.Players[i].ID == playerID {
+				game.Players[i].AvailableBombs++
+				break
+			}
+		}
+	})
 }
 
 func PlantBomb(x int, y int, fireDistance int, gameboard [][]string, mapUpdateChannel chan<- []BlockUpdate) {

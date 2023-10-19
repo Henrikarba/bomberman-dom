@@ -97,27 +97,20 @@ func (s *Server) HandleKeyPress() {
 
 				// Bomb plant
 				if keys[" "] && (s.Game.Players)[i].AvailableBombs > 0 {
-					s.gameMu.Lock()
-					s.Game.Players[i].AvailableBombs--
-					s.gameMu.Unlock()
 					bombX := s.Game.Players[i].X
 					bombY := s.Game.Players[i].Y
-					fireDistance := s.Game.Players[i].FireDistance
-					currentMap := s.Game.Map
-					go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
-					go func(playerID int) {
-						time.AfterFunc(3500*time.Millisecond, func() {
-							s.gameMu.Lock()
-							defer s.gameMu.Unlock()
 
-							for i := range s.Game.Players {
-								if s.Game.Players[i].ID == playerID {
-									s.Game.Players[i].AvailableBombs++
-									break
-								}
-							}
-						})
-					}(s.Game.Players[i].ID)
+					if s.Game.Map[bombY][bombX] != game.Bomb {
+						s.gameMu.Lock()
+						s.Game.Players[i].AvailableBombs--
+						// fmt.Println(fmt.Sprintf("PlayerID: %d has %d bombs after planting bomb", i, s.Game.Players[i].AvailableBombs))
+						s.gameMu.Unlock()
+
+						fireDistance := s.Game.Players[i].FireDistance
+						currentMap := s.Game.Map
+						go game.PlantBomb(bombX, bombY, fireDistance, currentMap, s.mapUpdateChannel)
+						go game.ReplenishBomb(s.Game.Players[i].ID, &s.Game, &s.gameMu)
+					}
 				}
 
 				// Movement
@@ -163,7 +156,9 @@ func (s *Server) HandleKeyPress() {
 						} else if typeof == "p1" {
 							fmt.Println("+ 1 bomb")
 							go game.ClearPowerup(newX, newY, s.Game.Map, s.mapUpdateChannel)
+							// fmt.Println(fmt.Sprintf("PlayerID: %d has %d bombs before powerup", i, s.Game.Players[i].AvailableBombs))
 							s.Game.Players[i].AvailableBombs++
+							// fmt.Println(fmt.Sprintf("PlayerID: %d has %d bombs after powerup", i, s.Game.Players[i].AvailableBombs))
 							s.MovePlayer(i, newX, newY, &shouldUpdate)
 						} else if typeof == "p2" {
 							fmt.Println("+ 100 speed")
@@ -227,6 +222,10 @@ func (s *Server) UpdateGameState() {
 								s.playerUpdateChannel <- s.Game.Players
 								if s.Game.Players[i].Lives <= 0 {
 									s.lostGame(s.Game.Players[i])
+
+									s.connsMu.Lock()
+									s.Conns[s.Game.Players[i].ID].WriteJSON(MessageType{Type: "game_over"})
+									s.connsMu.Unlock()
 								}
 							}
 						}

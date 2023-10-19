@@ -1,0 +1,97 @@
+import { playerState, blockUpdates, mapState, gameloop, playerID, playerCount } from './app.js'
+
+// update values here for gameloop
+
+const createWebSocket = () => {
+	const actionMap = {
+		'playerID': updatePlayerID,
+		'status': updatePlayerCount,
+		'server_full': showServerFull,
+		'new_game': initNewGame,
+		'game_over': endGame,
+		'player_state_update': updatePlayerState,
+		'map_state_update': updateMapState,
+		'game_over': endGame,
+	}
+
+	const socket = new WebSocket('ws://localhost:5000/ws')
+
+	socket.onmessage = (e) => {
+		const data = JSON.parse(e.data)
+		console.log(data)
+
+		const action = actionMap[data.type]
+		if (action) {
+			action(data)
+		}
+
+		gameloop(data.type)
+	}
+	return socket
+}
+
+export const socket = createWebSocket()
+
+function updatePlayerID(data) {
+	playerID.value = parseInt(data.message)
+}
+
+function updatePlayerCount(data) {
+	playerCount.value = data.player_count
+}
+
+function showServerFull(data) {
+	app.innerHTML = data.message
+}
+
+function endGame(data) {
+	document.removeEventListener('keydown', keyDownHandler)
+	document.removeEventListener('keyup', keyUpHandler)
+}
+
+function updatePlayerState(data) {
+	playerState.value = data.players
+}
+
+function updateMapState(data) {
+	blockUpdates.value = data.block_updates
+}
+
+function manageKeys(socket, sending, activeKeys) {
+	if (activeKeys.size > 0) {
+		socket.send(JSON.stringify({ type: 'keydown', keys: Array.from(activeKeys) }))
+		sending = true
+	} else {
+		if (sending) {
+			socket.send(JSON.stringify({ type: 'keyup', keys: [] }))
+			sending = false
+		}
+	}
+}
+
+let activeKeys = new Set()
+let sending = false
+function initNewGame(data) {
+	mapState.value = data.map
+	playerState.value = data.players
+
+	document.addEventListener('keydown', keyDownHandler)
+	document.addEventListener('keyup', keyUpHandler)
+
+	setInterval(() => {
+		manageKeys(socket, sending, activeKeys)
+	}, 50)
+}
+
+function keyDownHandler(e) {
+	// console.log('KEY DOWN')
+	const keyDown = e.key.toLowerCase()
+	if (!'wsad '.includes(keyDown)) return
+	activeKeys.add(keyDown)
+}
+
+function keyUpHandler(e) {
+	const keyUp = e.key.toLowerCase()
+	if (!'wsad '.includes(keyUp)) return
+	activeKeys.delete(keyUp)
+}
