@@ -39,7 +39,11 @@ function chatAreaHandler(data) {
 	const msg = mini.div({ style: 'word-wrap: break-word;' }, name, `: ${data.message}`)
 	chatArea.appendChild(msg)
 	const lobbyPlayerCount = document.getElementById('lobby-player-count')
-	lobbyPlayerCount.innerHTML = `<span>Total Players: ${data.player_count}</span>`
+	let lobbyPlayerCountImg = ``
+	for (let i = 1; i <= data.player_count; i++) {
+		lobbyPlayerCountImg += `<div class="player${i}"></div>`
+	}
+	lobbyPlayerCount.innerHTML = lobbyPlayerCountImg
 }
 
 function updatePlayerID(data) {
@@ -51,7 +55,7 @@ function updatePlayerID(data) {
 function updatePlayerCount(data) {
 	playerCount.value = data.player_count
 	const lobbyTimer = document.getElementById('lobby-timer')
-	lobbyTimer.innerHTML = `<span>Game Starts In:</span><span>${data.countdown}</span>`
+	lobbyTimer.innerHTML = `<span>${data.countdown}</span>`
 }
 
 function showServerFull(data) {

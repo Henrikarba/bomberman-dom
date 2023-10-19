@@ -62,7 +62,10 @@ function newLobby() {
 	div.appendChild(info)
 	div.appendChild(
 		mini.div({ id: 'lobby' },
-			mini.div({ id: 'lobby-player-count' }),
+			mini.div({},
+				mini.div({}, "Players In Lobby"),
+				mini.div({ id: 'lobby-player-count' })
+			),
 			mini.div({ id: 'lobby-timer' })
 		)
 	)
