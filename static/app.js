@@ -60,12 +60,7 @@ export function gameloop(updateType) {
 function newLobby() {
 	didGameStart = false
 	div.appendChild(info)
-	div.appendChild(
-		mini.div({ id: 'lobby' },
-			mini.div({ id: 'lobby-player-count' }),
-			mini.div({ id: 'lobby-timer' })
-		)
-	)
+	div.appendChild(mini.div({ id: 'lobby' }, mini.div({ id: 'lobby-player-count' }), mini.div({ id: 'lobby-timer' })))
 
 	display.appendChild(div)
 	display.appendChild(chat)
@@ -106,12 +101,6 @@ function updatePlayerPosition(gameboard) {
 				playerElement = Player(player)
 				playerElements[player.id] = playerElement
 				gameboard.appendChild(playerElement.getSprite())
-			}
-
-			if (player.lives <= 0) {
-				let removePlayer = document.getElementById(`player${player.id}`)
-				info.innerHTML = 'DEAD'
-				removePlayer.style.display = 'none'
 			}
 
 			if (playerElement) {
