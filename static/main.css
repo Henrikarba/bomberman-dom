@@ -43,12 +43,44 @@
 	height: fit-content;
 }
 
+#messageInput {
+	display: flex;
+	align-items: center;
+}
+
+#message {
+	flex-grow: 1;
+	height: 30px;
+}
+
+#send-message-button {
+	height: 30px;
+	background-color: green;
+	color: white;
+}
+
+#send-message-button:disabled {
+	height: 30px;
+	background-color: red;
+	color: white;
+}
+
 .chat {
 	margin-top: 2rem;
 	margin-left: 1rem;
 	width: 20rem;
+	display: flex;
+	flex-direction: column;
 	height: 832px;
 	background-color: gray;
+}
+
+.chat-area {
+	flex-grow: 1;
+	overflow-y: auto;
+	overflow-x: none;
+	padding: 5px;
+	font-size: 20px;
 }
 
 .info {

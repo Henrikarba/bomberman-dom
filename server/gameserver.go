@@ -222,7 +222,6 @@ func (s *Server) UpdateGameState() {
 								s.playerUpdateChannel <- s.Game.Players
 								if s.Game.Players[i].Lives <= 0 {
 									s.lostGame(s.Game.Players[i])
-
 									s.connsMu.Lock()
 									s.Conns[s.Game.Players[i].ID].WriteJSON(MessageType{Type: "game_over"})
 									s.connsMu.Unlock()
@@ -258,15 +257,15 @@ func (s *Server) MonitorPlayerCount() {
 	}
 	for {
 		select {
-		case player := <-s.playerCountChannel:
+		case <-s.playerCountChannel:
 			s.gameMu.Lock()
 			currentCount := s.Game.PlayerCount
 			s.gameMu.Unlock()
-
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: playerMap[currentCount] + " joined"})
 			if currentCount >= 2 {
 				s.NewGame()
 				for id := range s.Conns {
-					player := game.NewPlayer(id, s.Game.Map, player.Name)
+					player := game.NewPlayer(id, s.Game.Map, playerMap[id])
 					s.Game.Players = append(s.Game.Players, *player)
 					s.Game.KeysPressed[id] = make(map[string]bool)
 				}

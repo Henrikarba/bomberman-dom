@@ -1,4 +1,5 @@
-import { playerState, blockUpdates, mapState, gameloop, playerID, playerCount } from './app.js'
+import { playerState, blockUpdates, mapState, gameloop, playerID, playerCount, chatArea } from './app.js'
+import mini from './mini/framework.js'
 
 // update values here for gameloop
 
@@ -11,6 +12,7 @@ const createWebSocket = () => {
 		'player_state_update': updatePlayerState,
 		'map_state_update': updateMapState,
 		'game_over': endGame,
+		'message': chatAreaHandler,
 	}
 
 	const socket = new WebSocket('ws://localhost:5000/ws')
@@ -31,6 +33,12 @@ const createWebSocket = () => {
 }
 
 export const socket = createWebSocket()
+
+function chatAreaHandler(data) {
+	const name = mini.span({ style: 'color: orange;' }, `${data.name}`)
+	const msg = mini.div({ style: 'word-wrap: break-word;' }, name, `: ${data.message}`)
+	chatArea.appendChild(msg)
+}
 
 function updatePlayerID(data) {
 	playerID.value = parseInt(data.message)
@@ -101,5 +109,5 @@ function keyUpHandler(e) {
 }
 
 function isExcludedInput(target) {
-	return target.tagName === 'INPUT';
+	return target.tagName === 'INPUT'
 }

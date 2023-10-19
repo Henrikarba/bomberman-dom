@@ -1,6 +1,7 @@
 import mini from './mini/framework.js'
 import { mapStateUpdate, drawGameboard } from './mapupdates.js'
 import { drawStartMenu } from './start.js'
+import { socket } from './socket.js'
 
 import Player from './player.js'
 
@@ -23,6 +24,15 @@ const div = mini.div({})
 const display = mini.div({ class: 'display' })
 
 const info = mini.div({ class: 'info' })
+export const chatArea = mini.div({ class: 'chat-area' })
+const sendMessageButton = mini.button(
+	{
+		id: 'send-message-button',
+		type: 'submit',
+		disabled: true,
+	},
+	'SUBMIT'
+)
 const chat = drawchat()
 const overlay = mini.div({ class: 'overlay' }, mini.h2({}, 'SPECTATING'))
 
@@ -109,7 +119,7 @@ function drawchat() {
 
 	const handleInputChange = (e) => {
 		inputLength = e.target.value.length
-		const sendMessageButton = document.getElementById('send-message-button')
+
 		if (inputLength > 0) {
 			sendMessageButton.disabled = false
 		} else {
@@ -123,29 +133,23 @@ function drawchat() {
 
 	return mini.div(
 		{ class: 'chat' },
+		chatArea,
 		mini.form(
-			{ id: 'messageInput' },
 			{
-				style: 'display: flex; flex-direction: row;',
+				id: 'messageInput',
 				onsubmit: (e) => {
 					e.preventDefault()
 					const sendMessage = {
 						type: 'message',
-						name: input.value,
+						message: input.value,
 					}
 					socket.send(JSON.stringify(sendMessage))
 					input.value = ''
+					sendMessageButton.disabled = true
 				},
 			},
 			input,
-			mini.button(
-				{
-					id: 'send-message-button',
-					type: 'submit',
-					disabled: true,
-				},
-				'SUBMIT'
-			)
+			sendMessageButton
 		)
 	)
 }

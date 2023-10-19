@@ -29,9 +29,12 @@ func getNextPlayerID() int {
 }
 
 type MessageType struct {
-	Type    string `json:"type"`
+	Type    string `json:"type,omitempty"`
+	Name    string `json:"name,omitempty"`
 	Message string `json:"message,omitempty"`
 }
+
+var playerMap = make(map[int]string)
 
 func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -137,17 +140,29 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 		}
 
 	case "register":
-
 		var registerMsg game.Player
 		err = json.Unmarshal(rawMessage, &registerMsg)
 		if err != nil {
 			log.Println("Error unmarshaling to RegisterMessage:", err)
 			return
 		}
+		playerMap[playerID] = registerMsg.Name
 		s.connsMu.Lock()
 		s.Conns[playerID].WriteJSON(MessageType{Type: "playerID", Message: fmt.Sprintf("%d", playerID)})
 		s.connsMu.Unlock()
+
 		s.Game.PlayerCount++
 		s.playerCountChannel <- registerMsg
+
+	case "message":
+		var msg MessageType
+		err = json.Unmarshal(rawMessage, &msg)
+		if err != nil {
+			log.Println("Error unmarshaling to message:", err)
+			return
+		}
+		msg.Name = playerMap[playerID]
+		s.sendUpdatesToPlayers(msg)
 	}
+
 }
