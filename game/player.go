@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -45,7 +44,7 @@ func NewPlayer(name string, id int) *Player {
 func StartingPositions(player *Player) *Player {
 	rows := 13
 	cols := 19
-
+	player.Lives = 3
 	switch player.ID {
 	case 1:
 		player.X = 0
@@ -64,6 +63,5 @@ func StartingPositions(player *Player) *Player {
 		player.Y = rows - 1
 		player.Direction = "up"
 	}
-	fmt.Println(player.ID)
 	return player
 }

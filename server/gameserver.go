@@ -322,6 +322,7 @@ func (s *Server) startCountdown(ctx context.Context, cancelFunc context.CancelFu
 					s.Game.KeysPressed[s.Game.Players[i].ID] = make(map[string]bool)
 					s.gameMu.Unlock()
 				}
+				fmt.Println(s.Game.Players)
 				s.Game.Playing = true
 				s.ControlChan <- "start"
 				s.gameStateChannel <- s.Game

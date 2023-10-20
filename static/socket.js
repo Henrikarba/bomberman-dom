@@ -95,17 +95,7 @@ function updateMapState(data) {
 	blockUpdates.value = data.block_updates
 }
 
-function manageKeys(socket, sending, activeKeys) {
-	if (activeKeys.size > 0) {
-		socket.send(JSON.stringify({ type: 'keydown', keys: Array.from(activeKeys) }))
-		sending = true
-	} else {
-		if (sending) {
-			socket.send(JSON.stringify({ type: 'keyup', keys: [] }))
-			sending = false
-		}
-	}
-}
+function manageKeys(socket, sending, activeKeys) {}
 
 let activeKeys = new Set()
 let sending = false
@@ -115,18 +105,14 @@ function initNewGame(data) {
 
 	document.addEventListener('keydown', keyDownHandler)
 	document.addEventListener('keyup', keyUpHandler)
-
-	setInterval(() => {
-		manageKeys(socket, sending, activeKeys)
-	}, 50)
 }
 
 function keyDownHandler(e) {
-	// console.log('KEY DOWN')
 	const keyDown = e.key.toLowerCase()
 	if (!isExcludedInput(e.target)) {
 		if (!'wsad '.includes(keyDown)) return
 		activeKeys.add(keyDown)
+		socket.send(JSON.stringify({ type: 'keydown', keys: Array.from(activeKeys) }))
 	}
 }
 
@@ -135,6 +121,7 @@ function keyUpHandler(e) {
 	if (!isExcludedInput(e.target)) {
 		if (!'wsad '.includes(keyUp)) return
 		activeKeys.delete(keyUp)
+		socket.send(JSON.stringify({ type: 'keyup', keys: Array.from(activeKeys) }))
 	}
 }
 

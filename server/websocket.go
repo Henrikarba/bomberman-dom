@@ -64,7 +64,7 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var lastKeydownTime time.Time
-	debounceDuration := 50 * time.Millisecond
+	debounceDuration := 20 * time.Millisecond
 	for {
 		var rawMessage json.RawMessage
 		err := conn.ReadJSON(&rawMessage)
@@ -135,7 +135,7 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 			return
 		}
 		move.PlayerID = playerID
-		if move.Type == "keydown" {
+		if move.Type == "keyup" {
 			currentTime := time.Now()
 			if currentTime.Sub(*lastKeydownTime) >= debounceDuration {
 				lastKeydownTime = &currentTime

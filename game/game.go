@@ -25,7 +25,7 @@ type BlockUpdate struct {
 }
 
 func AddPoweup() int {
-	randomNumber := rand.Intn(3) + 1
+	randomNumber := rand.Intn(30) + 1
 	return randomNumber
 }
 
