@@ -319,12 +319,13 @@ func (s *Server) startCountdown(ctx context.Context, cancelFunc context.CancelFu
 					s.gameMu.Lock()
 					playa := game.StartingPositions(&player)
 					s.Game.Players[i] = *playa
-					s.Game.KeysPressed[player.ID] = make(map[string]bool)
+					s.Game.KeysPressed[s.Game.Players[i].ID] = make(map[string]bool)
 					s.gameMu.Unlock()
 				}
 				s.Game.Playing = true
 				s.ControlChan <- "start"
 				s.gameStateChannel <- s.Game
+				s.playerUpdateChannel <- s.Game.Players
 			}
 		}
 	}
