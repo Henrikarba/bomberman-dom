@@ -14,6 +14,10 @@ import (
 var upgrader = websocket.Upgrader{
 	WriteBufferSize: 256,
 	ReadBufferSize:  256,
+
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 type MessageType struct {
