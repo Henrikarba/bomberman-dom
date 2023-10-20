@@ -13,3 +13,11 @@ Created by
 ## Usage
 
 `go run .`
+
+## For gaming beginners
+
+UP - W
+LEFT - A
+DOWN - S
+RIGHT - D
+BOMB - space
