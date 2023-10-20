@@ -16,8 +16,8 @@ Created by
 
 ## For gaming beginners
 
-`UP - W
-LEFT - A
-DOWN - S
-RIGHT - D
-BOMB - space`
+- UP - W
+- LEFT - A
+- DOWN - S
+- RIGHT - D
+- BOMB - space`
