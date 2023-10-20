@@ -75,7 +75,7 @@ function updatePlayerID(data) {
 function updatePlayerCount(data) {
 	playerCount.value = data.player_count
 	const lobbyTimer = document.getElementById('lobby-timer')
-	lobbyTimer.innerHTML = `<span>${data.countdown}</span>`
+	if (lobbyTimer) lobbyTimer.innerHTML = `<span>${data.countdown}</span>`
 }
 
 function showServerFull(data) {
