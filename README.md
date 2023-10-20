@@ -20,4 +20,4 @@ Created by
 - LEFT - A
 - DOWN - S
 - RIGHT - D
-- BOMB - space`
+- BOMB - SPACE
