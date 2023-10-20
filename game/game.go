@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -25,7 +26,14 @@ type BlockUpdate struct {
 }
 
 func AddPoweup() int {
-	randomNumber := rand.Intn(30) + 1
+	var limit float64
+	limit = 0.9
+	if rand.Float64() < limit {
+		return 10
+	}
+
+	weightedSlice := []int{1, 1, 1, 1, 1, 3, 3, 3, 2}
+	randomNumber := weightedSlice[rand.Intn(len(weightedSlice))]
 	return randomNumber
 }
 
@@ -102,12 +110,16 @@ func handleExplosion(x int, y int, fireDistance int, gameboard [][]string, mapUp
 				break
 			} else if blockType == Block {
 				test := AddPoweup()
+				fmt.Println("TEST,", test)
+				// Bomb
 				if test == 1 {
 					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Power1})
 					gameboard[newY][newX] = Power1
+					// Speed
 				} else if test == 2 {
 					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Power2})
 					gameboard[newY][newX] = Power2
+					// Range
 				} else if test == 3 {
 					blockUpdate = append(blockUpdate, BlockUpdate{X: newX, Y: newY, Block: Power3})
 					gameboard[newY][newX] = Power3

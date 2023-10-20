@@ -279,7 +279,7 @@ func (s *Server) MonitorPlayerCount() {
 			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), PlayerCount: len(s.Game.Players)})
 			if len(s.Game.Players) == 2 && cancelFunc == nil {
 				ctx, cancelFunc = context.WithCancel(context.Background())
-				go s.startCountdown(ctx, cancelFunc, data, playerCountChange, 20)
+				go s.startCountdown(ctx, cancelFunc, data, playerCountChange, 30)
 			}
 			if len(s.Game.Players) == 4 {
 				playerCountChange <- 4

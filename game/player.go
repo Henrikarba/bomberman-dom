@@ -31,7 +31,7 @@ func NewPlayer(name string, id int) *Player {
 	player := &Player{
 		ID:             id,
 		Name:           name,
-		Speed:          300,
+		Speed:          500,
 		AvailableBombs: 1,
 		FireDistance:   1,
 		Lives:          3,
