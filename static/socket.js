@@ -60,9 +60,10 @@ function chatAreaHandler(data) {
 	chatArea.appendChild(msg)
 	const lobbyPlayerCount = document.getElementById('lobby-player-count')
 	let lobbyPlayerCountImg = ``
-	for (let i = 1; i <= data.player_count; i++) {
-		lobbyPlayerCountImg += `<div class="player${i}"></div>`
-	}
+	data.players.forEach((player) => {
+		console.log(player)
+		lobbyPlayerCountImg += `<div class="player${player.id}"></div>`
+	});
 	if (lobbyPlayerCount) lobbyPlayerCount.innerHTML = lobbyPlayerCountImg
 }
 
@@ -95,7 +96,7 @@ function updateMapState(data) {
 	blockUpdates.value = data.block_updates
 }
 
-function manageKeys(socket, sending, activeKeys) {}
+function manageKeys(socket, sending, activeKeys) { }
 
 let activeKeys = new Set()
 let sending = false

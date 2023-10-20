@@ -276,7 +276,7 @@ func (s *Server) MonitorPlayerCount() {
 	for {
 		select {
 		case player := <-s.playerCountChannel:
-			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), PlayerCount: len(s.Game.Players)})
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s joined.", player.Name), Player: s.Game.Players})
 			if len(s.Game.Players) == 2 && cancelFunc == nil {
 				ctx, cancelFunc = context.WithCancel(context.Background())
 				go s.startCountdown(ctx, cancelFunc, data, playerCountChange, 30)
@@ -286,7 +286,7 @@ func (s *Server) MonitorPlayerCount() {
 			}
 
 		case player := <-s.playerLeaveChannel:
-			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s left.", player.Name), PlayerCount: len(s.Game.Players)})
+			s.sendUpdatesToPlayers(MessageType{Type: "message", Name: "Server", Message: fmt.Sprintf("%s left.", player.Name), Player: s.Game.Players})
 			if len(s.Game.Players) < 2 && cancelFunc != nil {
 				cancelFunc()
 				cancelFunc = nil

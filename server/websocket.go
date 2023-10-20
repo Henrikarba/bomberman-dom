@@ -17,10 +17,10 @@ var upgrader = websocket.Upgrader{
 }
 
 type MessageType struct {
-	Type        string `json:"type,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Message     string `json:"message,omitempty"`
-	PlayerCount int    `json:"player_count"`
+	Type    string        `json:"type,omitempty"`
+	Name    string        `json:"name,omitempty"`
+	Message string        `json:"message,omitempty"`
+	Player  []game.Player `json:"players"`
 }
 
 var availableIDs = make(chan int, 4)
@@ -169,7 +169,7 @@ func (s *Server) handleMessage(rawMessage json.RawMessage, playerID int, lastKey
 		for i := range s.Game.Players {
 			if s.Game.Players[i].ID == playerID {
 				msg.Name = s.Game.Players[i].Name
-				msg.PlayerCount = len(s.Game.Players)
+				msg.Player = s.Game.Players
 			}
 		}
 		s.sendUpdatesToPlayers(msg)
