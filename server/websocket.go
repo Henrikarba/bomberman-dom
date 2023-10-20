@@ -48,20 +48,6 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	playerID := <-availableIDs
 
 	s.AddConn(playerID, conn)
-	defer func() {
-		conn.Close()
-		s.ControlChan <- "stop"
-		s.RemoveConn(playerID)
-		for i := range s.Game.Players {
-			if s.Game.Players[i].ID == playerID {
-				s.playerLeaveChannel <- s.Game.Players[i]
-			}
-		}
-
-		players := s.removePlayerByID(s.Game.Players, playerID)
-		s.Game.Players = players
-		availableIDs <- playerID
-	}()
 
 	var lastKeydownTime time.Time
 	debounceDuration := 20 * time.Millisecond
@@ -70,6 +56,18 @@ func (s *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		err := conn.ReadJSON(&rawMessage)
 		if err != nil {
 			log.Println("Error reading JSON:", err)
+			conn.Close()
+			s.ControlChan <- "stop"
+			s.RemoveConn(playerID)
+			for i := range s.Game.Players {
+				if s.Game.Players[i].ID == playerID {
+					s.playerLeaveChannel <- s.Game.Players[i]
+				}
+			}
+
+			players := s.removePlayerByID(s.Game.Players, playerID)
+			s.Game.Players = players
+			availableIDs <- playerID
 			return
 		}
 		s.handleMessage(rawMessage, playerID, &lastKeydownTime, debounceDuration)

@@ -33,7 +33,7 @@ func NewPlayer(name string, id int) *Player {
 		Name:           name,
 		Speed:          300,
 		AvailableBombs: 1,
-		FireDistance:   2,
+		FireDistance:   1,
 		Lives:          3,
 		Damaged:        false,
 	}
