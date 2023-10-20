@@ -1,6 +1,9 @@
 package game
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Movement struct {
 	Type string `json:"type"`
@@ -39,7 +42,7 @@ func NewPlayer(name string, id int) *Player {
 	return player
 }
 
-func StartingPositions(player *Player) {
+func StartingPositions(player *Player) *Player {
 	rows := 13
 	cols := 19
 
@@ -61,4 +64,6 @@ func StartingPositions(player *Player) {
 		player.Y = rows - 1
 		player.Direction = "up"
 	}
+	fmt.Println(player.ID)
+	return player
 }
