@@ -1,3 +1,8 @@
+## Description
+
+It's a multiplayer bomberman game, everything works as it should altough if a game ends
+the only way to start a new one is to close the server and restart it
+
 ## Created by
 
 - [@rakett1337](https://01.kood.tech/git/rakett1337)
